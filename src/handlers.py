@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, CallbackContext
 from session import get_user_session
 import openai
 import logging
@@ -24,7 +24,7 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await msg.edit_text(text=text)
 
 
-async def handle_voice_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received voice note from user {update.effective_user.id}")
     audio_file = context.bot.get_file(update.message.voice.file_id)
     # download the voice note as a file

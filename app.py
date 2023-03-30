@@ -1,35 +1,37 @@
 import os
+from dotenv import load_dotenv
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, Application
+from telegram.ext import filters as Filters
+import logging
 
-import openai
-from flask import Flask, redirect, render_template, request, url_for
+# setup
+load_dotenv()
+TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-app = Flask(__name__)
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-
-@app.route("/", methods=("GET", "POST"))
-def index():
-    if request.method == "POST":
-        animal = request.form["animal"]
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=generate_prompt(animal),
-            temperature=0.6,
-        )
-        return redirect(url_for("index", result=response.choices[0].text))
-
-    result = request.args.get("result")
-    return render_template("index.html", result=result)
+# configure logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
-def generate_prompt(animal):
-    return """Suggest three names for an animal that is a superhero.
+async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.debug(f"Hello command received from {update.effective_user.first_name}")
+    await update.message.reply_text(f'Hello {update.effective_user.first_name}')
 
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: {}
-Names:""".format(
-        animal.capitalize()
-    )
+
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.debug(f"Echoing message: {update.message.text}")
+    await update.message.reply_text(update.message.text)
+
+
+def init_app() -> Application:
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("hello", hello))
+    # add echo messagehandler
+    app.add_handler(MessageHandler(Filters.TEXT, echo))
+    return app
+
+
+if __name__ == '__main__':
+    application = init_app()
+    logging.info("Starting application")
+    application.run_polling()

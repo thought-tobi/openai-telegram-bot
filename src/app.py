@@ -7,7 +7,7 @@ from telegram.ext import filters as Filters
 import openai
 import logging
 
-from src.session import get_user_session, Session, sessions
+from session import get_user_session
 
 # setup
 load_dotenv()

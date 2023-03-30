@@ -18,14 +18,13 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logging.debug(f"Hello command received from {update.effective_user.first_name}")
-    await update.message.reply_text(f'Hello {update.effective_user.first_name}')
-
-
 async def prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
+    # send placeholder response
+    msg = await update.message.reply_text("Thinking...")
+
     session = get_user_session(update)
+    session.messages.append({"role": "user", "content": update.message.text})
 
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -35,12 +34,11 @@ async def prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": text})
     logging.info(session)
-    await update.message.reply_text(text)
+    await msg.edit_text(text=text)
 
 
 def init_app() -> Application:
     app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("hello", hello))
     app.add_handler(MessageHandler(Filters.TEXT, prompt))
     return app
 

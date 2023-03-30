@@ -3,6 +3,7 @@ import os
 
 import openai
 from dotenv import load_dotenv
+from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, Application, TypeHandler
 from telegram.ext import filters as Filters
 
@@ -20,7 +21,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 def init_app() -> Application:
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
-    app.add_handler(TypeHandler(Filters.VOICE, handle_voice_note))
+    app.add_handler(MessageHandler(Filters.VOICE, handle_voice_note))
     return app
 
 

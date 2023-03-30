@@ -2,6 +2,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 from session import get_user_session
 import openai
+from pydub import AudioSegment
 import logging
 
 
@@ -26,8 +27,11 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received voice note from user {update.effective_user.id}")
-    audio_file = context.bot.get_file(update.message.voice.file_id)
-    # download the voice note as a file
-    audio_file.download(f"{update.message.id}-voice_note.ogg")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file)
-    await update.message.reply_text(transcript)
+    filename = f"tmp/{update.message.id}-voice_note"
+    # download audio and convert it to mp3
+    audio_file = await context.bot.get_file(update.message.voice.file_id)
+    await audio_file.download_to_drive(f"{filename}.ogg")
+    AudioSegment.from_file(f"{filename}.ogg").export(f"{filename}.mp3")
+    # transcribe and return
+    transcript = openai.Audio.transcribe("whisper-1", open(f"{filename}.mp3", "rb"))
+    await update.message.reply_text(transcript["text"].encode().decode('utf-8'))

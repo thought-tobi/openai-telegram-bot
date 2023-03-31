@@ -20,9 +20,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 def init_app() -> Application:
     app = ApplicationBuilder().token(TOKEN).build()
+    # app.add_handler(CommandHandler("transcribe", handle_transcription_command))
     app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
     app.add_handler(MessageHandler(Filters.VOICE, handle_voice_note))
-    app.add_handler(CommandHandler("transcribe", handle_transcription_command))
     # app.add_handler(CommandHandler("images", handle_images_command))
     return app
 

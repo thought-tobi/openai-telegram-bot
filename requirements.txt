@@ -12,6 +12,7 @@ httpx==0.23.3
 idna==3.4
 multidict==6.0.4
 openai==0.27.2
+Pillow==9.4.0
 pydub==0.25.1
 python-dotenv==1.0.0
 python-telegram-bot==20.2

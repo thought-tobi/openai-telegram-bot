@@ -8,6 +8,8 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
 
+transcribe = False
+
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
@@ -17,8 +19,18 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received voice note from user {update.effective_user.id}")
     transcript = await extract_text_from_audio(update, context)
+    session = get_user_session(update)
+    if session.state.get("transcribe"):
+        await update.message.reply_text(transcript)
+        session.state["transcribe"] = False
+        return
     update.message.text = transcript
     await handle_prompt(update)
+
+
+async def handle_transcription_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = get_user_session(update)
+    session.state["transcribe"] = True
 
 
 async def handle_prompt(update: Update) -> None:

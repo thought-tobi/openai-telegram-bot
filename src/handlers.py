@@ -3,7 +3,7 @@ import os
 
 import openai
 from pydub import AudioSegment
-from telegram import Update
+from telegram import Update, Message
 from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
@@ -13,19 +13,19 @@ transcribe = False
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
-    await handle_prompt(update)
+    await handle_prompt(update, update.message.text)
 
 
 async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received voice note from user {update.effective_user.id}")
+    msg = await update.message.reply_text("Transcribing voice memo ...")
     transcript = await extract_text_from_audio(update, context)
     session = get_user_session(update)
     if session.state.get("transcribe"):
-        await update.message.reply_text(transcript)
+        await msg.edit_text(transcript)
         session.state["transcribe"] = False
         return
-    update.message.text = transcript
-    await handle_prompt(update)
+    await handle_prompt(update, transcript, msg)
 
 
 async def handle_transcription_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -33,10 +33,13 @@ async def handle_transcription_command(update: Update, context: ContextTypes.DEF
     session.state["transcribe"] = True
 
 
-async def handle_prompt(update: Update) -> None:
-    msg = await update.message.reply_text("Thinking...")
+async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
+    if msg is None:
+        msg = await update.message.reply_text("Thinking ...")
+    else:
+        await msg.edit_text("Thinking ...")
     session = get_user_session(update)
-    session.messages.append({"role": "user", "content": update.message.text})
+    session.messages.append({"role": "user", "content": prompt})
 
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",

@@ -3,7 +3,6 @@ import os
 
 import openai
 from dotenv import load_dotenv
-from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, Application, CommandHandler
 from telegram.ext import filters as Filters
 
@@ -15,7 +14,7 @@ TOKEN = os.environ.get("TELEGRAM_TOKEN")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO, filename="log")
 
 
 def init_app() -> Application:
@@ -23,7 +22,7 @@ def init_app() -> Application:
     app.add_handler(CommandHandler("transcribe", handle_transcription_command))
     app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
     app.add_handler(MessageHandler(Filters.VOICE, handle_voice_note))
-    # app.add_handler(CommandHandler("images", handle_images_command))
+    # app.add_handler(MessageHandler(Filters.PHOTO, handle_photo))
     return app
 
 

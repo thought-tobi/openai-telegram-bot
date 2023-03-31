@@ -1,11 +1,12 @@
+import logging
 import os
 
-from telegram import Update
-from telegram.ext import ContextTypes, CallbackContext
-from session import get_user_session
 import openai
 from pydub import AudioSegment
-import logging
+from telegram import Update
+from telegram.ext import ContextTypes, CallbackContext
+
+from session import get_user_session
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

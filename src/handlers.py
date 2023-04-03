@@ -1,8 +1,6 @@
 import logging
-import os
 
 import openai
-from pydub import AudioSegment
 from telegram import Update, Message
 from telegram.ext import ContextTypes, CallbackContext
 
@@ -19,24 +17,20 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await handle_prompt(update, update.message.text)
 
 
-async def handle_voice_note(update: Update, context: CallbackContext) -> None:
-    logging.info(f"Received voice note from user {update.effective_user.id}")
-    msg = await update.message.reply_text("Transcribing voice memo ...")
-    transcript = await extract_text_from_audio(update, context)
+async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(HELP_TEXT)
+
+
+async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update)
-    if session.state.get("transcribe"):
-        await msg.edit_text(transcript)
-        session.state["transcribe"] = False
-        return
-    await handle_prompt(update, transcript, msg)
+    original_text = update.message.reply_to_message.text
+    session.messages.append({"role": "assistant", "content": original_text})
+    await handle_prompt(update, update.message.text)
 
 
-async def summarize_voice_note(update: Update, context: CallbackContext) -> None:
-    logging.info(f"Received forwarded voice note from user {update.effective_user.id}")
-    msg = await update.message.reply_text("Summarizing voice memo ...")
-    transcript = await extract_text_from_audio(update, context)
-    prompt = "Summarize the following text in its original language: " + transcript
-    await handle_prompt(update, prompt, msg)
+async def handle_error(update: Update, context: CallbackContext) -> None:
+    logging.error(f"Update {update} caused error {context.error}")
+    await update.message.reply_text("I'm very sorry, an error occured.")
 
 
 async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
@@ -55,32 +49,3 @@ async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
     response = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": response})
     await msg.edit_text(text=response)
-
-
-async def extract_text_from_audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
-    filename = f"./tmp/{update.message.id}-voice_note"
-    # download audio and convert it to mp3
-    audio_file = await context.bot.get_file(update.message.voice.file_id)
-    await audio_file.download_to_drive(f"{filename}.ogg")
-    AudioSegment.from_file(f"{filename}.ogg").export(f"{filename}.mp3")
-    transcript = openai.Audio.transcribe("whisper-1", open(f"{filename}.mp3", "rb"))["text"].encode().decode('utf-8')
-    # cleanup
-    os.remove(f"{filename}.ogg")
-    os.remove(f"{filename}.mp3")
-    return transcript
-
-
-async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(HELP_TEXT)
-
-
-async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    session = get_user_session(update)
-    original_text = update.message.reply_to_message.text
-    session.messages.append({"role": "assistant", "content": original_text})
-    await handle_prompt(update, update.message.text)
-
-
-async def handle_error(update: Update, context: CallbackContext) -> None:
-    logging.error(f"Update {update} caused error {context.error}")
-    await update.message.reply_text("I'm very sorry, an error occured.")

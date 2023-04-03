@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from telegram import Update
 
-SESSIONS = []
+sessions = []
 SESSION_LENGTH_MINUTES = 60
 
 SYSTEM_PROMPT = """
@@ -28,15 +28,15 @@ class Session:
 
 def get_user_session(update: Update) -> Session:
     user_id = update.effective_user.id
-    for session in SESSIONS:
+    for session in sessions:
         if session.user_id == user_id:
             if session.expires_at > datetime.now(timezone.utc):
                 logging.info(f"Session for user {user_id} found")
                 return session
             # also manages session, should probably be in a separate function
             else:
-                logging.info(f"Session for user {user_id} expired, removing it from the list")
-                SESSIONS.remove(session)
+                logging.info(f"Session for user {user_id} expired, removing and creating new one")
+                sessions.remove(session)
     return _create_new_session(update)
 
 
@@ -44,6 +44,6 @@ def _create_new_session(update: Update) -> Session:
     session = Session(user_id=update.effective_user.id,
                       created_at=update.message.date,
                       messages=[{"role": "system", "content": SYSTEM_PROMPT}])
-    SESSIONS.append(session)
+    sessions.append(session)
     logging.info(f"Created new session for user {update.effective_user.id}")
     return session

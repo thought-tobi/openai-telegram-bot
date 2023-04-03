@@ -36,7 +36,7 @@ async def summarize_voice_note(update: Update, context: CallbackContext) -> None
     logging.info(f"Received forwarded voice note from user {update.effective_user.id}")
     msg = await update.message.reply_text("Summarizing voice memo ...")
     transcript = await extract_text_from_audio(update, context)
-    prompt = "Summarize the following text: " + transcript
+    prompt = "Summarize the following text in its original language: " + transcript
     await handle_prompt(update, prompt, msg)
 
 

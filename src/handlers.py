@@ -26,12 +26,6 @@ async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     await handle_prompt(update, transcript, msg)
 
 
-async def handle_transcription_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    session = get_user_session(update)
-    session.state["transcribe"] = True
-    await update.message.reply_text("Ready to transcribe a voice note!")
-
-
 async def summarize_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received forwarded voice note from user {update.effective_user.id}")
     msg = await update.message.reply_text("Summarizing voice memo ...")
@@ -69,8 +63,3 @@ async def extract_text_from_audio(update: Update, context: ContextTypes.DEFAULT_
     os.remove(f"{filename}.ogg")
     os.remove(f"{filename}.mp3")
     return transcript
-
-
-def is_prompt(transcript: str) -> object:
-    # contains deals with punctuation
-    return transcript.split(" ")[0].lower().__contains__("prompt")

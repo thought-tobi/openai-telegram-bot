@@ -1,9 +1,17 @@
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-import logging
+
 from telegram import Update
 
 SESSIONS = []
+
+SYSTEM_PROMPT = """
+    You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
+    - Answer user prompts
+    - Understand user voice memos and answer their questions
+    - Summarise forwarded voice memos
+"""
 
 
 @dataclass
@@ -33,7 +41,7 @@ def get_user_session(update: Update) -> Session:
 def _create_new_session(update: Update) -> Session:
     session = Session(user_id=update.effective_user.id,
                       created_at=update.message.date,
-                      messages=[])
+                      messages=[{"role": "system", "content": SYSTEM_PROMPT}])
     SESSIONS.append(session)
     logging.info(f"Created new session for user {update.effective_user.id}")
     return session

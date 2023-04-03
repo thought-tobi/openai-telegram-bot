@@ -70,5 +70,17 @@ async def extract_text_from_audio(update: Update, context: ContextTypes.DEFAULT_
     return transcript
 
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(HELP_TEXT)
+
+
+async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = get_user_session(update)
+    original_text = update.message.reply_to_message.text
+    session.messages.append({"role": "assistant", "content": original_text})
+    await handle_prompt(update, update.message.text)
+
+
+async def handle_error(update: Update, context: CallbackContext) -> None:
+    logging.error(f"Update {update} caused error {context.error}")
+    await update.message.reply_text("I'm very sorry, an error occured.")

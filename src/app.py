@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, MessageHandler, Application, CommandHandler
 from telegram.ext import filters as Filters
 
-from handlers import handle_text_prompt, handle_voice_note, summarize_voice_note, help
+from handlers import handle_text_prompt, handle_voice_note, summarize_voice_note, handle_help, handle_reply
 
 # setup
 load_dotenv()
@@ -19,9 +19,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 def init_app() -> Application:
     app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("help", help))
-    app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
+    app.add_handler(CommandHandler("help", handle_help))
+    app.add_handler(MessageHandler(Filters.TEXT & Filters.REPLY, handle_reply))
     app.add_handler(MessageHandler(Filters.VOICE & Filters.FORWARDED, summarize_voice_note))
+    app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
     app.add_handler(MessageHandler(Filters.VOICE, handle_voice_note))
     return app
 

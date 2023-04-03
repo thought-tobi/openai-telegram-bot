@@ -28,7 +28,7 @@ async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await handle_prompt(update, update.message.text)
 
 
-async def handle_error(update: Update, context: CallbackContext) -> None:
+async def handle_error(update: object, context: CallbackContext) -> None:
     logging.error(f"Update {update} caused error {context.error}")
     await update.message.reply_text("I'm very sorry, an error occured.")
 

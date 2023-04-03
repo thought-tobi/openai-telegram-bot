@@ -14,7 +14,11 @@ Prompt ideas:
 ...
     """
 
-PROMPT_HELP = "Generate three short, creative prompts showcasing different aspects of ChatGPT in less than ten words."
+# hack to forget the session
+PROMPT_HELP = "Forget everything." \
+              "Generate three prompts with less than ten words each." \
+              "Two prompts should showcase ChatGPT's ability to help with day-to-day problems." \
+              "One should be funny, random, or quirky. Give me just the ideas, nothing else."
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -24,7 +28,7 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = await update.message.reply_text(HELP_TEXT)
-    await handle_prompt(update, PROMPT_HELP, msg)
+    await handle_prompt(update, PROMPT_HELP, msg, keep_old_message=True)
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -39,7 +43,7 @@ async def handle_error(update: object, context: CallbackContext) -> None:
     await update.message.reply_text("I'm very sorry, an error occured.")
 
 
-async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
+async def handle_prompt(update: Update, prompt, msg: Message = None, keep_old_message=False) -> None:
     if msg is None:
         msg = await update.message.reply_text("Thinking ...")
     session = get_user_session(update)
@@ -52,4 +56,6 @@ async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
 
     response = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": response})
-    await msg.edit_text(text=response)
+    old_text = msg.text
+    new_text = old_text.replace("...", response) if keep_old_message else response
+    await msg.edit_text(text=new_text)

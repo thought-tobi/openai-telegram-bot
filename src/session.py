@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from telegram import Update
 
 SESSIONS = []
+SESSION_LENGTH_MINUTES = 60
 
 SYSTEM_PROMPT = """
     You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
@@ -22,7 +23,7 @@ class Session:
     messages: list[dict]
 
     def __post_init__(self):
-        self.expires_at = self.created_at + timedelta(minutes=30)
+        self.expires_at = self.created_at + timedelta(minutes=SESSION_LENGTH_MINUTES)
 
 
 def get_user_session(update: Update) -> Session:

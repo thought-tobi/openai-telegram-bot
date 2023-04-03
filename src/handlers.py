@@ -7,9 +7,14 @@ from telegram.ext import ContextTypes, CallbackContext
 from session import get_user_session
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
-    Try asking me a question – you can even record a voice note.
-    If you forward me a voice note, I can summarize it for you.
+Try asking me a question – you can even record a voice note.
+If you forward me a voice note, I can summarize it for you.
+
+Prompt ideas:
+...
     """
+
+PROMPT_HELP = "Generate three short, creative prompts showcasing different aspects of ChatGPT in less than ten words."
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -18,7 +23,8 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(HELP_TEXT)
+    msg = await update.message.reply_text(HELP_TEXT)
+    await handle_prompt(update, PROMPT_HELP, msg)
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -36,8 +42,6 @@ async def handle_error(update: object, context: CallbackContext) -> None:
 async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:
     if msg is None:
         msg = await update.message.reply_text("Thinking ...")
-    else:
-        await msg.edit_text("Thinking ...")
     session = get_user_session(update)
     session.messages.append({"role": "user", "content": prompt})
 

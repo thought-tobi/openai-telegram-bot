@@ -13,6 +13,7 @@ async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     logging.info(f"Received voice note from user {update.effective_user.id}")
     msg = await update.message.reply_text("Transcribing voice memo ...")
     transcript = await extract_text_from_audio(update, context)
+    await msg.edit_text("Thinking ...")
     await handle_prompt(update, transcript, msg)
 
 
@@ -21,6 +22,7 @@ async def summarize_voice_note(update: Update, context: CallbackContext) -> None
     msg = await update.message.reply_text("Summarizing voice memo ...")
     transcript = await extract_text_from_audio(update, context)
     prompt = "Summarize the following text in its original language: " + transcript
+    await msg.edit_text("Thinking ...")
     await handle_prompt(update, prompt, msg)
 
 

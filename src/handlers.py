@@ -3,7 +3,6 @@ import os
 
 import openai
 from pydub import AudioSegment
-from PIL import Image
 from telegram import Update, Message
 from telegram.ext import ContextTypes, CallbackContext
 
@@ -27,30 +26,18 @@ async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     await handle_prompt(update, transcript, msg)
 
 
-async def handle_photo(update: Update, context: CallbackContext) -> None:
-    logging.info(f"Received image from user {update.effective_user.id} with caption {update.message.caption}")
-    image = await context.bot.get_file(update.message.photo[-1].file_id)
-    prompt = update.message.text
-    filename = f"./tmp/{update.message.id}-image"
-    await image.download_to_drive(f"{filename}.jpg")
-    msg = await update.message.reply_text("Generating image ...")
-    img = Image.open(f"{filename}.jpg")
-    img.putalpha(255)
-    img.save(f"{filename}.png")
-    logging.info(f"Getting suggestions from OpenAI API for image {filename}.png")
-    response = openai.Image.create_edit(
-        image=open(f"{filename}.png", "rb"),
-        prompt=update.message.caption,
-        n=1,
-        size="512x512"
-    )
-    await msg.edit_text(response['data'][0]['url'])
-
-
 async def handle_transcription_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update)
     session.state["transcribe"] = True
     await update.message.reply_text("Ready to transcribe a voice note!")
+
+
+async def summarize_voice_note(update: Update, context: CallbackContext) -> None:
+    logging.info(f"Received forwarded voice note from user {update.effective_user.id}")
+    msg = await update.message.reply_text("Summarizing voice memo ...")
+    transcript = await extract_text_from_audio(update, context)
+    prompt = "Summarize the following text: " + transcript
+    await handle_prompt(update, prompt, msg)
 
 
 async def handle_prompt(update: Update, prompt, msg: Message = None) -> None:

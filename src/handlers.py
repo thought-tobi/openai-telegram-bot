@@ -8,6 +8,11 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
 
+HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
+    Try asking me a question – you can even record a voice note.
+    If you forward me a voice note, I can summarize it for you.
+    """
+
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
@@ -63,3 +68,7 @@ async def extract_text_from_audio(update: Update, context: ContextTypes.DEFAULT_
     os.remove(f"{filename}.ogg")
     os.remove(f"{filename}.mp3")
     return transcript
+
+
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(HELP_TEXT)

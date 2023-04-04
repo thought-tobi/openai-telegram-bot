@@ -7,6 +7,7 @@ from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
 
 from handlers import handle_prompt
+from edit_message import EditMessage
 
 
 async def handle_voice_note(update: Update, context: CallbackContext) -> None:
@@ -14,7 +15,7 @@ async def handle_voice_note(update: Update, context: CallbackContext) -> None:
     msg = await update.message.reply_text("Transcribing voice memo ...")
     transcript = await extract_text_from_audio(update, context)
     await msg.edit_text("Thinking ...")
-    await handle_prompt(update, transcript, msg)
+    await handle_prompt(update, transcript, EditMessage(msg))
 
 
 async def summarize_voice_note(update: Update, context: CallbackContext) -> None:
@@ -23,7 +24,7 @@ async def summarize_voice_note(update: Update, context: CallbackContext) -> None
     transcript = await extract_text_from_audio(update, context)
     prompt = "Summarize the following text in its original language: " + transcript
     await msg.edit_text("Thinking ...")
-    await handle_prompt(update, prompt, msg)
+    await handle_prompt(update, prompt, EditMessage(msg))
 
 
 async def extract_text_from_audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:

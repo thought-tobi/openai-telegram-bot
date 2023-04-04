@@ -1,10 +1,11 @@
 import logging
 
 import openai
-from telegram import Update, Message
+from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
+from edit_message import EditMessage
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 Try asking me a question – you can even record a voice note.
@@ -28,7 +29,7 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = await update.message.reply_text(HELP_TEXT)
-    await handle_prompt(update, PROMPT_HELP, msg, keep_old_message=True)
+    await handle_prompt(update, PROMPT_HELP, EditMessage(msg, "..."))
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -43,9 +44,9 @@ async def handle_error(update: object, context: CallbackContext) -> None:
     await update.message.reply_text("I'm very sorry, an error occured.")
 
 
-async def handle_prompt(update: Update, prompt, msg: Message = None, keep_old_message=False) -> None:
+async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
     if msg is None:
-        msg = await update.message.reply_text("Thinking ...")
+        msg = EditMessage(await update.message.reply_text("Thinking ..."))
     session = get_user_session(update)
     session.messages.append({"role": "user", "content": prompt})
 
@@ -56,6 +57,4 @@ async def handle_prompt(update: Update, prompt, msg: Message = None, keep_old_me
 
     response = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": response})
-    old_text = msg.text
-    new_text = old_text.replace("...", response) if keep_old_message else response
-    await msg.edit_text(text=new_text)
+    await msg.message.edit_text(msg.replace(response))

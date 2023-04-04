@@ -22,8 +22,8 @@ async def text_to_speech(text: str, model_id: str = "EXAVITQu4vr4xnSDxMaL"):
     JSON["text"] = text
     logging.info(f"Sending text-to-speech request for text '{text}'")
     response = requests.post(f"{ELEVEN_LABS_API_BASE}/text-to-speech/{model_id}", json=JSON, headers=HEADERS)
-    # if response.status_code != 200:
-    #     raise Exception(f"Request failed with status code {response.status_code}, reason {response.text}")
+    if response.status_code != 200:
+        raise RuntimeError(f"Request failed with status code {response.status_code}, reason {response.text}")
     logging.info(f"Received response in {response.elapsed} (text length: {len(text)}))")
     filename = f"tmp/{uuid.uuid4()}.mp3"
     with open(filename, "wb") as f:

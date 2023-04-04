@@ -80,7 +80,13 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     if session.tts:
         tts_file = await text_to_speech(response)
-        await update.message.reply_voice(voice=open(tts_file, "rb"))
-        os.remove(tts_file)
+        try:
+            await update.message.reply_voice(voice=open(tts_file, "rb"))
+            os.remove(tts_file)
+        except RuntimeError as e:
+            logging.error("Failed to retrieve TTS, reason: " + str(e))
+            session.tts = False
+            await msg.message.edit_text(f"Unfortunately there was an error retrieving the TTS. "
+                                        f"Your text response is below.\n{response}")
     else:
         await msg.message.edit_text(msg.replace(response))

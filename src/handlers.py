@@ -61,10 +61,13 @@ async def handle_error(update: object, context: CallbackContext) -> None:
 async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
     if msg is None:
         msg = EditMessage(await update.message.reply_text("Thinking ..."))
+
+    # retrieve user session and append prompt
     session = get_user_session(update)
     session.messages.append({"role": "user", "content": prompt})
     logging.info(f"Effective prompt: {prompt}")
 
+    # get chatgpt response
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=session.messages
@@ -78,15 +81,16 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     if session.tts and len(response) > 333:
         return await handle_prompt(update, "Summarize your response.", msg)
 
+    # tts conversion and error handling
     if session.tts:
-        tts_file = await text_to_speech(response)
         try:
+            tts_file = await text_to_speech(response)
             await update.message.reply_voice(voice=open(tts_file, "rb"))
             os.remove(tts_file)
         except RuntimeError as e:
             logging.error("Failed to retrieve TTS, reason: " + str(e))
             session.tts = False
             await msg.message.edit_text(f"Unfortunately there was an error retrieving the TTS. "
-                                        f"Your text response is below.\n{response}")
+                                        f"Your text response is below. TTS will be disabled for now.\n{response}")
     else:
         await msg.message.edit_text(msg.replace(response))

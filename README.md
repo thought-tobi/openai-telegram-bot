@@ -1,44 +1,55 @@
-# OpenAI API Quickstart - Python example app
+# A Telegram ChatGPT Bot
 
-This is an example pet name generator app used in the OpenAI API [quickstart tutorial](https://beta.openai.com/docs/quickstart). It uses the [Flask](https://flask.palletsprojects.com/en/2.0.x/) web framework. Check out the tutorial or follow the instructions below to get set up.
+This is a project to integrate ChatGPT into your life more conveniently - by having it right where you talk to your friends.
+This bot supports speech-to-text and text-to-speech, so you can talk to it like you would to a human.
 
-## Setup
+You can find the bot running at [@tobis_openai_bot](https://t.me/tobis_openai_bot).
 
-1. If you don’t have Python installed, [install it from here](https://www.python.org/downloads/).
+I'm currently hosting my instance of the bot in an AWS free tier t2.micro EC2 instance.
+You can also host your own version of the bot if you like.
 
-2. Clone this repository.
+## Setting up your own bot
 
-3. Navigate into the project directory:
+### Prerequisites
 
-   ```bash
-   $ cd openai-quickstart-python
-   ```
+- Python 3.8
+- ffmpeg/ffprobe installed [help](https://help.ftrack.com/en/articles/1040538-installing-ffmpeg-and-ffprobe)
+- A Telegram bot token
+- An OpenAI API key
+- An elevenlabs API key (optional, for text-to-speech)
 
-4. Create a new virtual environment:
+### Install and Run
 
-   ```bash
-   $ python -m venv venv
-   $ . venv/bin/activate
-   ```
+Clone this repository.
 
-5. Install the requirements:
+    git clone git@github.com:thought-tobi/openai-telegram-bot.git
+    cd openai-telegram-bot
 
-   ```bash
-   $ pip install -r requirements.txt
-   ```
+Run build.sh to create virtual environment, install dependencies and create
 
-6. Make a copy of the example environment variables file:
+    ./scripts/build.sh
 
-   ```bash
-   $ cp .env .env
-   ```
+Create .env file and populate it. It should look like this:
 
-7. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file.
+    OPENAI_API_KEY=your-openai-api-key
+    TELEGRAM_TOKEN=your-telegram-bot-token
+    ELEVENLABS_API_KEY=your-elevenlabs-api-key
 
-8. Run the app:
+Run it!
 
-   ```bash
-   $ flask run
-   ```
+        ./scripts/run.sh
 
-You should now be able to access the app at [http://localhost:5000](http://localhost:5000)! For the full context behind this example app, check out the [tutorial](https://beta.openai.com/docs/quickstart).
+## Contributing
+
+This whole project is free and open source. If you want to contribute, please do so! I'm happy to accept pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Donations
+
+This is just a silly side project of mine, and I'm not sure it's gonna be particularly valuable to anyone.
+However, if you like this project or find that it's useful to you, 
+you can support me by donating to my [PayPal](https://paypal.me/tobiaswaslowski).
+It helps pay the costs incurred by using the OpenAI and Elevenlabs API.

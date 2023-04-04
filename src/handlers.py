@@ -1,4 +1,5 @@
 import logging
+import os
 
 import openai
 from telegram import Update
@@ -6,6 +7,7 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
 from edit_message import EditMessage
+from text_to_speech import text_to_speech
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 Try asking me a question – you can even record a voice note.
@@ -61,6 +63,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
         msg = EditMessage(await update.message.reply_text("Thinking ..."))
     session = get_user_session(update)
     session.messages.append({"role": "user", "content": prompt})
+    logging.info(f"Effective prompt: {prompt}")
 
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -69,4 +72,15 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     response = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": response})
-    await msg.message.edit_text(msg.replace(response))
+    logging.info(f"Response: {response}")
+
+    # handle elevenlabs api free tier limits
+    if session.tts and len(response) > 333:
+        return await handle_prompt(update, "Summarize your response.", msg)
+
+    if session.tts:
+        tts_file = await text_to_speech(response)
+        await update.message.reply_voice(voice=open(tts_file, "rb"))
+        os.remove(tts_file)
+    else:
+        await msg.message.edit_text(msg.replace(response))

@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 import requests
 from dotenv import load_dotenv
@@ -16,13 +17,18 @@ JSON = {
 }
 
 
-def text_to_speech(text: str, model_id: str):
+# model defaults to bella
+async def text_to_speech(text: str, model_id: str = "EXAVITQu4vr4xnSDxMaL"):
     JSON["text"] = text
     logging.info(f"Sending text-to-speech request for text '{text}'")
     response = requests.post(f"{ELEVEN_LABS_API_BASE}/text-to-speech/{model_id}", json=JSON, headers=HEADERS)
+    # if response.status_code != 200:
+    #     raise Exception(f"Request failed with status code {response.status_code}, reason {response.text}")
     logging.info(f"Received response in {response.elapsed} (text length: {len(text)}))")
-    with open("tmp/output.mp3", "wb") as f:
+    filename = f"tmp/{uuid.uuid4()}.mp3"
+    with open(filename, "wb") as f:
         f.write(response.content)
+    return filename
 
 
 def get_voices():

@@ -10,9 +10,9 @@ from edit_message import EditMessage
 from text_to_speech import text_to_speech
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
-Try asking me a question – you can even record a voice note.
-If you forward me a voice note, I can summarize it for you.
-
+- Try asking me a question – you can even record a voice note.
+- If you forward me a voice note, I can summarize it for you.
+- Type /tts to enable text-to-speech. I will read out my responses.
 Prompt ideas:
 ...
     """

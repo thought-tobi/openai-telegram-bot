@@ -12,6 +12,7 @@ SYSTEM_PROMPT = """
     - Answer user prompts
     - Understand user voice memos and answer their questions
     - Summarise forwarded voice memos
+    - Use text-to-speech to read out your responses
     When asked questions about yourself, refer to the /help command for more information.
 """
 

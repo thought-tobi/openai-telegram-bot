@@ -7,12 +7,16 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from session import get_user_session
 from edit_message import EditMessage
-from text_to_speech import text_to_speech
+from text_to_speech import text_to_speech, voices
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 - Try asking me a question – you can even record a voice note.
 - If you forward me a voice note, I can summarize it for you.
 - Type /tts to enable text-to-speech. I will read out my responses.
+- Type /voice to change my voice. Available voices:
+    - bella
+    - peterson
+    - trump
 Prompt ideas:
 ...
     """
@@ -35,6 +39,18 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = await update.message.reply_text(HELP_TEXT)
     await handle_prompt(update, PROMPT_HELP, EditMessage(msg, "..."))
+
+
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    voice = update.message.text.replace("/voice ", "").lower()
+    if voice in voices:
+        session = get_user_session(update)
+        session.current_voice = voice
+        logging.info(f"Setting TTS voice for user {update.effective_user.id}")
+        await update.message.reply_text(f"Voice set to {voice}")
+    else:
+        logging.info(f"Voice {voice} not found")
+        await update.message.reply_text(f"Voice '{voice}' not found. Please try again.")
 
 
 async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -77,14 +93,10 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     session.messages.append({"role": "assistant", "content": response})
     logging.info(f"Response: {response}")
 
-    # handle elevenlabs api free tier limits
-    if session.tts and len(response) > 333:
-        return await handle_prompt(update, "Summarize your response.", msg)
-
     # tts conversion and error handling
     if session.tts:
         try:
-            tts_file = await text_to_speech(response)
+            tts_file = text_to_speech(response, session.current_voice)
             await update.message.reply_voice(voice=open(tts_file, "rb"))
             os.remove(tts_file)
         except RuntimeError as e:

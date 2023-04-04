@@ -23,6 +23,7 @@ class Session:
     created_at: datetime
     messages: list[dict]
     tts: bool = False
+    current_voice: str = "bella"
 
     def __post_init__(self):
         self.expires_at = self.created_at + timedelta(minutes=SESSION_LENGTH_MINUTES)

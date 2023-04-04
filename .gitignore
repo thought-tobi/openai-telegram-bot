@@ -19,3 +19,4 @@ build/
 *.pem
 log
 tmp
+voice_samples

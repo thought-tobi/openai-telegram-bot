@@ -15,6 +15,8 @@ HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to p
 - Type /tts to enable text-to-speech. I will read out my responses.
 Prompt ideas:
 ...
+I'm also Open Source! Find me here:
+https://github.com/thought-tobi/openai-telegram-bot
     """
 
 # hack to forget the session

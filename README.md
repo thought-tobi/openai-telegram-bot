@@ -29,7 +29,7 @@ Run build.sh to create virtual environment, install dependencies and create
 
     ./scripts/build.sh
 
-Create .env file and populate it. It should look like this:
+Create the .env file and populate it. It should look like this:
 
     OPENAI_API_KEY=your-openai-api-key
     TELEGRAM_TOKEN=your-telegram-bot-token
@@ -37,7 +37,7 @@ Create .env file and populate it. It should look like this:
 
 Run it!
 
-        ./scripts/run.sh
+    ./scripts/run.sh
 
 ## Contributing
 

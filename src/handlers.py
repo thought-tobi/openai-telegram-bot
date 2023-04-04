@@ -21,6 +21,9 @@ PROMPT_HELP = "Forget everything." \
               "Two prompts should showcase ChatGPT's ability to help with day-to-day problems." \
               "One should be funny, random, or quirky. Give me just the ideas, nothing else."
 
+TTS_ENABLED = "TTS enabled. I will read out my responses. " \
+              "Disable with /tts or by waiting until your session expires [default: 60 minutes]."
+
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
@@ -30,6 +33,15 @@ async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = await update.message.reply_text(HELP_TEXT)
     await handle_prompt(update, PROMPT_HELP, EditMessage(msg, "..."))
+
+
+async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = get_user_session(update)
+    session.tts = not session.tts
+    if session.tts:
+        await update.message.reply_text(TTS_ENABLED)
+    else:
+        await update.message.reply_text("TTS disabled.")
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

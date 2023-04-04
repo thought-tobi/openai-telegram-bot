@@ -13,10 +13,6 @@ HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to p
 - Try asking me a question – you can even record a voice note.
 - If you forward me a voice note, I can summarize it for you.
 - Type /tts to enable text-to-speech. I will read out my responses.
-- Type /voice to change my voice. Available voices:
-    - bella
-    - peterson
-    - trump
 Prompt ideas:
 ...
     """
@@ -47,7 +43,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         session = get_user_session(update)
         session.current_voice = voice
         logging.info(f"Setting TTS voice for user {update.effective_user.id}")
-        await update.message.reply_text(f"Voice set to {voice}")
+        await update.message.reply_text(f"Voice set to {voice}.")
     else:
         logging.info(f"Voice {voice} not found")
         await update.message.reply_text(f"Voice '{voice}' not found. Please try again.")

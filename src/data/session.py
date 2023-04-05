@@ -6,7 +6,7 @@ import dacite
 
 import src.data.mongo as mongo
 
-TTS_SESSION_LENGTH = 5
+TTS_SESSION_LENGTH = 300
 
 SYSTEM_PROMPT = """
     You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
@@ -65,6 +65,6 @@ def inactive_tts() -> TTS:
     return TTS(voice="bella", enabled_until=None)
 
 
-def new_tts() -> TTS:
+def new_tts(session_length: int = TTS_SESSION_LENGTH) -> TTS:
     return TTS(voice="bella",
-               enabled_until=datetime.datetime.now() + datetime.timedelta(minutes=TTS_SESSION_LENGTH))
+               enabled_until=datetime.datetime.now() + datetime.timedelta(seconds=session_length))

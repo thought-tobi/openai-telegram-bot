@@ -53,7 +53,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 async def send_response(session: Session, response: str, update: Update, msg: EditMessage):
     if session.tts.is_active():
         try:
-            msg.message.edit_text("Converting response to speech ...")
+            await msg.message.edit_text("Converting response to speech ...")
             tts_file = text_to_speech(response, session.tts.voice)
             await update.message.reply_voice(voice=open(tts_file, "rb"))
             os.remove(tts_file)

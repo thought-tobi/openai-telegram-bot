@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.data.edit_message import EditMessage
-from src.data.session import get_user_session, new_tts
+from src.data.session import get_user_session
 from src.handlers.text_handlers import handle_prompt
 from src.text_to_speech import voices
 

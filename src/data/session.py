@@ -1,6 +1,7 @@
 import logging
-from dataclasses import dataclass
-import src.mongo as mongo
+from dataclasses import dataclass, asdict
+import dacite
+import mongo
 
 SESSION_LENGTH_MINUTES = 60
 
@@ -24,7 +25,9 @@ class Session:
 
 def get_user_session(user_id: int) -> Session:
     session = mongo.get_session(user_id)
-    if session is None:
+    if session is not None:
+        return dacite.from_dict(data_class=Session, data=session)
+    else:
         return create_new_session(user_id)
 
 
@@ -32,5 +35,5 @@ def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
                       messages=[{"role": "system", "content": SYSTEM_PROMPT}])
     logging.info(f"Created new session for user {user_id}")
-    mongo.persist_session(session)
+    mongo.persist_session(asdict(session))
     return session

@@ -5,9 +5,9 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from src.data.session import get_user_session
-from src.data.edit_message import EditMessage
-from src.text_to_speech import text_to_speech, voices
+from data.session import get_user_session
+from data.edit_message import EditMessage
+from text_to_speech import text_to_speech, voices
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 - Try asking me a question – you can even record a voice note.
@@ -42,7 +42,7 @@ async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     voice = update.message.text.replace("/voice ", "").lower()
     if voice in voices:
-        session = get_user_session(update)
+        session = get_user_session(update.effective_user.id)
         session.current_voice = voice
         logging.info(f"Setting TTS voice for user {update.effective_user.id}")
         await update.message.reply_text(f"Voice set to {voice}.")
@@ -52,7 +52,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    session = get_user_session(update)
+    session = get_user_session(update.effective_user.id)
     session.tts = not session.tts
     if session.tts:
         await update.message.reply_text(TTS_ENABLED)
@@ -61,7 +61,7 @@ async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    session = get_user_session(update)
+    session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
     session.messages.append({"role": "assistant", "content": original_text})
     await handle_prompt(update, update.message.text)
@@ -77,7 +77,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
         msg = EditMessage(await update.message.reply_text("Thinking ..."))
 
     # retrieve user session and append prompt
-    session = get_user_session(update)
+    session = get_user_session(update.effective_user.id)
     session.messages.append({"role": "user", "content": prompt})
     logging.info(f"Effective prompt: {prompt}")
 

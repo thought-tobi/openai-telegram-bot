@@ -5,7 +5,7 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from src.data.session import get_user_session
+from src.data.session import get_user_session, Session
 from src.data.edit_message import EditMessage
 from src.text_to_speech import text_to_speech
 
@@ -29,7 +29,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
-    session.messages.append({"role": "user", "content": prompt})
+    session.add_message({"role": "user", "content": prompt})
     logging.info(f"Effective prompt: {prompt}")
 
     # get chatgpt response
@@ -39,10 +39,12 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     )
 
     response = openai_response["choices"][0]["message"]["content"]
-    session.messages.append({"role": "assistant", "content": response})
+    session.add_message({"role": "assistant", "content": response})
     logging.info(f"Response: {response}")
-    session.save()
-    # tts conversion and error handling
+    await send_response(session, response, update, msg)
+
+
+async def send_response(session: Session, response: str, update: Update, msg: EditMessage):
     if session.tts.is_active():
         try:
             tts_file = text_to_speech(response, session.tts.voice)
@@ -50,7 +52,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
             os.remove(tts_file)
         except RuntimeError as e:
             logging.error("Failed to retrieve TTS, reason: " + str(e))
-            session.tts = False
+            session.tts.deactivate()
             await msg.message.edit_text(f"Unfortunately there was an error retrieving the TTS. "
                                         f"Your text response is below. TTS will be disabled for now.\n{response}")
     else:

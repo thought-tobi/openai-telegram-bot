@@ -23,13 +23,18 @@ class TTS:
     voice: str
     enabled_until: datetime.datetime | None
 
-    def is_active(self) -> bool:
-        if self.session_expired():
-            self.enabled_until = None
-        return self.enabled_until is not None
+    @staticmethod
+    def create_inactive():
+        return TTS(voice="bella", enabled_until=None)
 
-    def session_expired(self) -> bool:
+    def activate(self, session_length: int = TTS_SESSION_LENGTH):
+        self.enabled_until = datetime.datetime.now() + datetime.timedelta(seconds=session_length)
+
+    def is_expired(self):
         return self.enabled_until is not None and self.enabled_until < datetime.datetime.now()
+
+    def is_active(self):
+        return self.enabled_until is not None
 
 
 @dataclass
@@ -41,6 +46,40 @@ class Session:
     def save(self):
         logging.info(f"Saving session state for user {self.user_id}")
         mongo.update_session(asdict(self))
+
+    def set_voice(self, voice):
+        logging.info(f"Setting TTS voice for user {self.user_id} to {voice}")
+        self.tts.voice = voice
+        self.save()
+
+    def toggle_tts(self):
+        if self.tts.is_active():
+            logging.info(f"Disabling TTS for user {self.user_id}")
+            self.tts.deactivate()
+        else:
+            logging.info(f"Enabling TTS for user {self.user_id}")
+            self.tts.activate()
+        self.save()
+
+    def add_message(self, message: dict):
+        self.messages.append(message)
+        self.save()
+
+    def activate_tts(self, session_length: int = TTS_SESSION_LENGTH):
+        self.tts.activate(session_length)
+        self.save()
+
+    def reset_tts(self):
+        self.tts = TTS.create_inactive()
+        self.save()
+
+    # this has the side effect of removing outdated tts sessions, may want to refactor
+    def is_tts_active(self):
+        if self.tts.enabled_until is not None:
+            if self.tts.is_expired():
+                self.reset_tts()
+        self.save()
+        return self.tts.is_active()
 
 
 def get_user_session(user_id: int) -> Session:
@@ -55,16 +94,7 @@ def get_user_session(user_id: int) -> Session:
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
                       messages=[{"role": "system", "content": SYSTEM_PROMPT}],
-                      tts=inactive_tts())
+                      tts=TTS.create_inactive())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))
     return session
-
-
-def inactive_tts() -> TTS:
-    return TTS(voice="bella", enabled_until=None)
-
-
-def new_tts(session_length: int = TTS_SESSION_LENGTH) -> TTS:
-    return TTS(voice="bella",
-               enabled_until=datetime.datetime.now() + datetime.timedelta(seconds=session_length))

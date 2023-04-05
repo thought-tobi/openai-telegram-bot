@@ -42,9 +42,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     voice = update.message.text.replace("/voice ", "").lower()
     if voice in voices:
         session = get_user_session(update.effective_user.id)
-        session.tts.voice = voice
-        logging.info(f"Setting TTS voice for user {update.effective_user.id}")
-        session.save()
+        session.set_voice(voice)
         await update.message.reply_text(f"Voice set to {voice}.")
     else:
         logging.info(f"Voice {voice} not found")
@@ -53,9 +51,8 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
-    session.tts = new_tts()
-    session.save()
-    if session.tts:
+    session.toggle_tts()
+    if session.tts.is_active():
         await update.message.reply_text(TTS_ENABLED)
     else:
         await update.message.reply_text("TTS disabled.")

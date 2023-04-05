@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, MessageHandler, Application, CommandHandler
 from telegram.ext import filters as Filters
 
-from handlers.text_handlers import handle_text_prompt, handle_help, handle_reply, handle_error, handle_tts, handle_voice
+from handlers.text_handlers import handle_reply, handle_error, handle_prompt
+from handlers.command_handlers import handle_help, handle_tts, handle_voice
 from handlers.audio_handlers import handle_voice_note, summarize_voice_note
 
 # setup
@@ -25,7 +26,7 @@ def init_app() -> Application:
     app.add_handler(CommandHandler("voice", handle_voice))
     app.add_handler(MessageHandler(Filters.TEXT & Filters.REPLY, handle_reply))
     app.add_handler(MessageHandler(Filters.VOICE & Filters.FORWARDED, summarize_voice_note))
-    app.add_handler(MessageHandler(Filters.TEXT, handle_text_prompt))
+    app.add_handler(MessageHandler(Filters.TEXT, handle_prompt))
     app.add_handler(MessageHandler(Filters.VOICE, handle_voice_note))
     app.add_error_handler(handle_error)
     return app

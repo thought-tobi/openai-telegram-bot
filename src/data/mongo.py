@@ -1,3 +1,5 @@
+from typing import Union
+
 import pymongo
 
 mongo_url = "mongodb://localhost:27017/"
@@ -20,7 +22,7 @@ def update_session(session: dict) -> None:
     sessions.update_one({"user_id": session["user_id"]}, {"$set": session})
 
 
-def get_session(user_id: int) -> dict | None:
+def get_session(user_id: int) -> Union[dict, None]:
     return sessions.find_one({"user_id": user_id})
 
 

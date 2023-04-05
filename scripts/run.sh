@@ -11,7 +11,7 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export PYTHONPATH=$PYTHONPATH:$ROOT_DIR
 
 # run mongodb docker image
-docker run -d -p 27017:27017 --name mongodb mongo:latest
+# docker run -d -p 27017:27017 --name mongodb mongo:latest
 
 # activate virtual environment
 source venv/bin/activate

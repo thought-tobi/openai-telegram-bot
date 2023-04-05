@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass, asdict
 
 import dacite
+from typing import Union, List, Dict
 
 import src.data.mongo as mongo
 
@@ -21,7 +22,7 @@ SYSTEM_PROMPT = """
 @dataclass
 class TTS:
     voice: str
-    enabled_until: datetime.datetime | None
+    enabled_until: Union[datetime.datetime, None]
 
     @staticmethod
     def create_inactive():
@@ -40,7 +41,7 @@ class TTS:
 @dataclass
 class Session:
     user_id: int
-    messages: list[dict]
+    messages: List[Dict]
     tts: TTS
 
     def save(self):

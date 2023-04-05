@@ -1,3 +1,4 @@
+import datetime
 import logging
 from dataclasses import dataclass, asdict
 
@@ -5,7 +6,7 @@ import dacite
 
 import src.data.mongo as mongo
 
-SESSION_LENGTH_MINUTES = 60
+TTS_SESSION_LENGTH = 5
 
 SYSTEM_PROMPT = """
     You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
@@ -18,11 +19,24 @@ SYSTEM_PROMPT = """
 
 
 @dataclass
+class TTS:
+    voice: str
+    enabled_until: datetime.datetime | None
+
+    def is_active(self) -> bool:
+        if self.session_expired():
+            self.enabled_until = None
+        return self.enabled_until is not None
+
+    def session_expired(self) -> bool:
+        return self.enabled_until is not None and self.enabled_until < datetime.datetime.now()
+
+
+@dataclass
 class Session:
     user_id: int
     messages: list[dict]
-    tts: bool = False
-    current_voice: str = "bella"
+    tts: TTS
 
     def save(self):
         logging.info(f"Saving session state for user {self.user_id}")
@@ -40,7 +54,17 @@ def get_user_session(user_id: int) -> Session:
 
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
-                      messages=[{"role": "system", "content": SYSTEM_PROMPT}])
+                      messages=[{"role": "system", "content": SYSTEM_PROMPT}],
+                      tts=inactive_tts())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))
     return session
+
+
+def inactive_tts() -> TTS:
+    return TTS(voice="bella", enabled_until=None)
+
+
+def new_tts() -> TTS:
+    return TTS(voice="bella",
+               enabled_until=datetime.datetime.now() + datetime.timedelta(minutes=TTS_SESSION_LENGTH))

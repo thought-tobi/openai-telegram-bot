@@ -5,9 +5,9 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from ..data.session import get_user_session
-from ..data.edit_message import EditMessage
-from ..text_to_speech import text_to_speech, voices
+from data.session import get_user_session
+from data.edit_message import EditMessage
+from text_to_speech import text_to_speech, voices
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 - Try asking me a question – you can even record a voice note.
@@ -45,6 +45,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         session = get_user_session(update.effective_user.id)
         session.current_voice = voice
         logging.info(f"Setting TTS voice for user {update.effective_user.id}")
+        session.save()
         await update.message.reply_text(f"Voice set to {voice}.")
     else:
         logging.info(f"Voice {voice} not found")
@@ -54,6 +55,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     session.tts = not session.tts
+    session.save()
     if session.tts:
         await update.message.reply_text(TTS_ENABLED)
     else:
@@ -64,6 +66,7 @@ async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
     session.messages.append({"role": "assistant", "content": original_text})
+    session.save()
     await handle_prompt(update, update.message.text)
 
 
@@ -90,7 +93,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     response = openai_response["choices"][0]["message"]["content"]
     session.messages.append({"role": "assistant", "content": response})
     logging.info(f"Response: {response}")
-
+    session.save()
     # tts conversion and error handling
     if session.tts:
         try:

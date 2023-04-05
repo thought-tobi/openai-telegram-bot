@@ -3,7 +3,7 @@ from dataclasses import dataclass, asdict
 
 import dacite
 
-import src.data.mongo as mongo
+import data.mongo as mongo
 
 SESSION_LENGTH_MINUTES = 60
 
@@ -24,10 +24,15 @@ class Session:
     tts: bool = False
     current_voice: str = "bella"
 
+    def save(self):
+        logging.info(f"Saving session state for user {self.user_id}")
+        mongo.update_session(asdict(self))
+
 
 def get_user_session(user_id: int) -> Session:
     session = mongo.get_session(user_id)
     if session is not None:
+        logging.info(f"Found session for user {user_id}")
         return dacite.from_dict(data_class=Session, data=session)
     else:
         return create_new_session(user_id)

@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from telegram import Message, Chat
 
-from ..data.edit_message import EditMessage
+from data.edit_message import EditMessage
 
 chat = Chat(1, "some-type")
 

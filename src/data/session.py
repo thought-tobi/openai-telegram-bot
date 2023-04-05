@@ -56,7 +56,7 @@ class Session:
     def toggle_tts(self):
         if self.tts.is_active():
             logging.info(f"Disabling TTS for user {self.user_id}")
-            self.tts.deactivate()
+            self.tts = TTS.create_inactive()
         else:
             logging.info(f"Enabling TTS for user {self.user_id}")
             self.tts.activate()

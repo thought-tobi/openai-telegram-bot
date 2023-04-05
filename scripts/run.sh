@@ -7,3 +7,6 @@ export PYTHONPATH=$PYTHONPATH:$ROOT_DIR
 # activate virtual environment
 source venv/bin/activate
 python src/app.py &
+
+# run mongodb docker image
+docker run -d -p 27017:27017 --name mongodb mongo:latest

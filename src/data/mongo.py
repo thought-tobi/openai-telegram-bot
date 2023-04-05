@@ -16,6 +16,10 @@ def persist_session(session: dict) -> None:
     sessions.insert_one(session)
 
 
+def update_session(session: dict) -> None:
+    sessions.update_one({"user_id": session["user_id"]}, {"$set": session})
+
+
 def get_session(user_id: int) -> dict | None:
     return sessions.find_one({"user_id": user_id})
 

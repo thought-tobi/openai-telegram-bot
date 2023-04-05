@@ -6,8 +6,8 @@ from pydub import AudioSegment
 from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
 
-from data.edit_message import EditMessage
-from handlers.text_handlers import handle_prompt
+from ..data.edit_message import EditMessage
+from ..handlers.text_handlers import handle_prompt
 
 
 async def handle_voice_note(update: Update, context: CallbackContext) -> None:

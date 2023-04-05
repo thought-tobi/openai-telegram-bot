@@ -3,7 +3,7 @@ from dataclasses import dataclass, asdict
 
 import dacite
 
-import data.mongo as mongo
+import src.data.mongo as mongo
 
 SESSION_LENGTH_MINUTES = 60
 

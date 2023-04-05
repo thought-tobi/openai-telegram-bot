@@ -1,7 +1,8 @@
 from dataclasses import asdict
-
-from ..data.session import create_new_session, get_user_session
-from ..data import mongo
+import sys
+import os
+from src.data.session import create_new_session, get_user_session
+from src.data import mongo
 from unittest import TestCase
 
 

@@ -21,6 +21,12 @@ async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def handle_error(update: object, context: CallbackContext) -> None:
     logging.error(f"Update {update} caused error {context.error}")
     await update.message.reply_text("I'm very sorry, an error occured.")
+    raise context.error
+
+
+async def handle_text_message(update: Update, context: CallbackContext) -> None:
+    logging.info(f"Received message from {update.effective_user.id}: {update.message.text}")
+    await handle_prompt(update, update.message.text)
 
 
 async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
@@ -47,12 +53,13 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 async def send_response(session: Session, response: str, update: Update, msg: EditMessage):
     if session.tts.is_active():
         try:
+            msg.message.edit_text("Converting response to speech ...")
             tts_file = text_to_speech(response, session.tts.voice)
             await update.message.reply_voice(voice=open(tts_file, "rb"))
             os.remove(tts_file)
         except RuntimeError as e:
             logging.error("Failed to retrieve TTS, reason: " + str(e))
-            session.tts.deactivate()
+            session.reset_tts()
             await msg.message.edit_text(f"Unfortunately there was an error retrieving the TTS. "
                                         f"Your text response is below. TTS will be disabled for now.\n{response}")
     else:

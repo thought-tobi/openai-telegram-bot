@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from telegram import Message
-import re
 
 
 @dataclass

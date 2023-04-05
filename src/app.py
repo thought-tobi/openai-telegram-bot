@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, MessageHandler, Application, CommandHandler
 from telegram.ext import filters as Filters
 
-from handlers import handle_text_prompt, handle_help, handle_reply, handle_error, handle_tts, handle_voice
-from audio_handlers import handle_voice_note, summarize_voice_note
+from handlers.text_handlers import handle_text_prompt, handle_help, handle_reply, handle_error, handle_tts, handle_voice
+from handlers.audio_handlers import handle_voice_note, summarize_voice_note
 
 # setup
 load_dotenv()

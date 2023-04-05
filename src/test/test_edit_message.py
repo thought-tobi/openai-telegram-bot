@@ -1,7 +1,9 @@
 import datetime
-from telegram import Message, Chat
 from unittest import TestCase
-from edit_message import EditMessage
+
+from telegram import Message, Chat
+
+from data.edit_message import EditMessage
 
 chat = Chat(1, "some-type")
 

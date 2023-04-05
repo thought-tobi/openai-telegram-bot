@@ -5,9 +5,9 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from session import get_user_session
-from edit_message import EditMessage
-from text_to_speech import text_to_speech, voices
+from src.data.session import get_user_session
+from src.data.edit_message import EditMessage
+from src.text_to_speech import text_to_speech, voices
 
 HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
 - Try asking me a question – you can even record a voice note.

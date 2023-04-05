@@ -26,7 +26,8 @@ def text_to_speech(text: str, model_id: str = "bella"):
     JSON["text"] = text
     headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
     logging.info(f"Sending text-to-speech request for text '{text}'")
-    response = requests.post(f"{ELEVEN_LABS_API_BASE}/text-to-speech/{voices.get(model_id)}", json=JSON, headers=headers)
+    response = requests.post(f"{ELEVEN_LABS_API_BASE}/text-to-speech/{voices.get(model_id)}", json=JSON,
+                             headers=headers)
     if response.status_code != 200:
         raise RuntimeError(f"Request failed with status code {response.status_code}, reason {response.text}")
     logging.info(f"Received response in {response.elapsed} (text length: {len(text)}))")

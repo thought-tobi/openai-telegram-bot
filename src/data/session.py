@@ -50,7 +50,7 @@ class Session:
         self.save()
 
     def get_messages(self) -> List[Dict]:
-        return [asdict(message) for message in self.messages]
+        return [message.dict() for message in self.messages]
 
     def activate_tts(self, session_length: int = TTS_SESSION_LENGTH) -> None:
         self.tts.activate(session_length)
@@ -83,7 +83,7 @@ def get_user_session(user_id: int) -> Session:
 
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
-                      messages=[Message(role="system", content=SYSTEM_PROMPT, tokens=0)],
+                      messages=[Message(role="system", content=SYSTEM_PROMPT)],
                       tts=TTS.create_inactive())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))

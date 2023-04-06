@@ -2,12 +2,16 @@ import time
 from src.data.session import create_new_session, get_user_session
 from src.data import mongo
 from unittest import TestCase
+from pymongo.errors import CollectionInvalid
 
 
 class TestSession(TestCase):
 
     def setUp(self) -> None:
-        mongo.init()
+        try:
+            mongo.init()
+        except CollectionInvalid:
+            pass  # already initialized
 
     def tearDown(self) -> None:
         mongo.delete_all()
@@ -25,7 +29,7 @@ class TestSession(TestCase):
         session.add_message({"role": "user", "content": "hello world"})
         assert len(get_user_session(user_id).messages) == 2
 
-    def test_should_update_tts(self):
+    def test_should_expire_tts(self):
         user_id = 123
         session = create_new_session(user_id)
         assert session.tts.is_active() is False
@@ -36,7 +40,7 @@ class TestSession(TestCase):
         time.sleep(3)
         assert get_user_session(user_id).is_tts_active() is False
 
-    def test_should_retain_voice_when_session_resets(self):
+    def test_should_reset_voice_when_session_resets(self):
         user_id = 123
         session = create_new_session(user_id)
         session.tts.activate(2)

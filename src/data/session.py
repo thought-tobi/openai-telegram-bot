@@ -1,41 +1,43 @@
 import datetime
 import logging
 from dataclasses import dataclass, asdict
+from typing import List, Dict
 
 import dacite
-from typing import Union, List, Dict
 
 import src.data.mongo as mongo
 
 TTS_SESSION_LENGTH = 300
 
-SYSTEM_PROMPT = """
+SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
+SYSTEM_PROMPT = f"""
     You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
     - Answer user prompts
     - Understand user voice memos and answer their questions
     - Summarise forwarded voice memos
     - Use text-to-speech to read out your responses
     When asked questions about yourself, refer to the /help command for more information.
+    If you cannot perform a task, reply exactly with "{SYSTEM_UNABLE_TO_RESPOND}", and follow up
+    with a one-sentence explanation of why that is.
 """
 
 
 @dataclass
 class TTS:
     voice: str
-    enabled_until: Union[datetime.datetime, None]
+    enabled_until: datetime.datetime
 
     @staticmethod
     def create_inactive():
-        return TTS(voice="bella", enabled_until=None)
+        # create datetime of start of unix time
+
+        return TTS(voice="bella", enabled_until=datetime.datetime(1970, 1, 1))
 
     def activate(self, session_length: int = TTS_SESSION_LENGTH):
         self.enabled_until = datetime.datetime.now() + datetime.timedelta(seconds=session_length)
 
-    def is_expired(self):
-        return self.enabled_until is not None and self.enabled_until < datetime.datetime.now()
-
-    def is_active(self):
-        return self.enabled_until is not None
+    def is_active(self) -> bool:
+        return self.enabled_until > datetime.datetime.now()
 
 
 @dataclass
@@ -44,16 +46,16 @@ class Session:
     messages: List[Dict]
     tts: TTS
 
-    def save(self):
+    def save(self) -> None:
         logging.info(f"Saving session state for user {self.user_id}")
         mongo.update_session(asdict(self))
 
-    def set_voice(self, voice):
+    def set_voice(self, voice) -> None:
         logging.info(f"Setting TTS voice for user {self.user_id} to {voice}")
         self.tts.voice = voice
         self.save()
 
-    def toggle_tts(self):
+    def toggle_tts(self) -> None:
         if self.tts.is_active():
             logging.info(f"Disabling TTS for user {self.user_id}")
             self.tts = TTS.create_inactive()
@@ -62,25 +64,25 @@ class Session:
             self.tts.activate()
         self.save()
 
-    def add_message(self, message: dict):
+    def add_message(self, message: dict) -> None:
         self.messages.append(message)
         self.save()
 
-    def activate_tts(self, session_length: int = TTS_SESSION_LENGTH):
+    def activate_tts(self, session_length: int = TTS_SESSION_LENGTH) -> None:
         self.tts.activate(session_length)
         self.save()
 
-    def reset_tts(self):
+    def reset_tts(self) -> None:
         self.tts = TTS.create_inactive()
         self.save()
 
     # this has the side effect of removing outdated tts sessions, may want to refactor
-    def is_tts_active(self):
-        if self.tts.enabled_until is not None:
-            if self.tts.is_expired():
-                self.reset_tts()
-        self.save()
-        return self.tts.is_active()
+    def is_tts_active(self) -> bool:
+        is_active = self.tts.is_active()
+        if not is_active:
+            self.reset_tts()
+            self.save()
+        return is_active
 
 
 def get_user_session(user_id: int) -> Session:

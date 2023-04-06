@@ -5,7 +5,7 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from src.data.session import get_user_session, Session
+from src.data.session import get_user_session, Session, SYSTEM_UNABLE_TO_RESPOND
 from src.data.edit_message import EditMessage
 from src.text_to_speech import text_to_speech
 
@@ -24,7 +24,7 @@ async def handle_error(update: object, context: CallbackContext) -> None:
     raise context.error
 
 
-async def handle_text_message(update: Update, context: CallbackContext) -> None:
+async def handle_text_message(update: Update, _) -> None:
     logging.info(f"Received message from {update.effective_user.id}: {update.message.text}")
     await handle_prompt(update, update.message.text)
 
@@ -51,7 +51,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
 
 async def send_response(session: Session, response: str, update: Update, msg: EditMessage):
-    if session.tts.is_active():
+    if should_perform_tts(response, session):
         try:
             await msg.message.edit_text("Converting response to speech ...")
             tts_file = text_to_speech(response, session.tts.voice)
@@ -64,3 +64,7 @@ async def send_response(session: Session, response: str, update: Update, msg: Ed
                                         f"Your text response is below. TTS will be disabled for now.\n{response}")
     else:
         await msg.message.edit_text(msg.replace(response))
+
+
+def should_perform_tts(response, session):
+    return session.tts.is_active() and SYSTEM_UNABLE_TO_RESPOND not in response

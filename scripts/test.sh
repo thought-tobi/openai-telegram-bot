@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-python -m unittest discover src/test -v
+python -m unittest discover src/test -vv

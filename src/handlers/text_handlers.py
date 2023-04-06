@@ -5,6 +5,7 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
+from src.data.message import Message
 from src.data.session import get_user_session, Session, SYSTEM_UNABLE_TO_RESPOND
 from src.data.edit_message import EditMessage
 from src.text_to_speech import text_to_speech
@@ -13,7 +14,7 @@ from src.text_to_speech import text_to_speech
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
-    session.messages.append({"role": "assistant", "content": original_text})
+    session.messages.append(Message(role="assistant", content=original_text))
     session.save()
     await handle_prompt(update, update.message.text)
 
@@ -35,17 +36,17 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
-    session.add_message({"role": "user", "content": prompt})
+    session.add_message(Message(role="user", content=prompt))
     logging.info(f"Effective prompt: {prompt}")
 
     # get chatgpt response
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=session.messages
+        messages=session.get_messages()
     )
 
     response = openai_response["choices"][0]["message"]["content"]
-    session.add_message({"role": "assistant", "content": response})
+    session.add_message(Message(role="assistant", content=response))
     logging.info(f"Response: {response}")
     await send_response(session, response, update, msg)
 

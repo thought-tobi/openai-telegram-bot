@@ -1,4 +1,3 @@
-import datetime
 import logging
 from dataclasses import dataclass, asdict
 from typing import List, Dict
@@ -6,8 +5,8 @@ from typing import List, Dict
 import dacite
 
 import src.data.mongo as mongo
-
-TTS_SESSION_LENGTH = 300
+from src.data.message import Message
+from src.data.tts import TTS, TTS_SESSION_LENGTH
 
 SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
 SYSTEM_PROMPT = f"""
@@ -17,33 +16,15 @@ SYSTEM_PROMPT = f"""
     - Summarise forwarded voice memos
     - Use text-to-speech to read out your responses
     When asked questions about yourself, refer to the /help command for more information.
-    If you cannot perform a task, reply exactly with "{SYSTEM_UNABLE_TO_RESPOND}", and follow up
+    If you cannot perform a task, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
     with a one-sentence explanation of why that is.
 """
 
 
 @dataclass
-class TTS:
-    voice: str
-    enabled_until: datetime.datetime
-
-    @staticmethod
-    def create_inactive():
-        # create datetime of start of unix time
-
-        return TTS(voice="bella", enabled_until=datetime.datetime(1970, 1, 1))
-
-    def activate(self, session_length: int = TTS_SESSION_LENGTH):
-        self.enabled_until = datetime.datetime.now() + datetime.timedelta(seconds=session_length)
-
-    def is_active(self) -> bool:
-        return self.enabled_until > datetime.datetime.now()
-
-
-@dataclass
 class Session:
     user_id: int
-    messages: List[Dict]
+    messages: List[Message]
     tts: TTS
 
     def save(self) -> None:
@@ -64,9 +45,12 @@ class Session:
             self.tts.activate()
         self.save()
 
-    def add_message(self, message: dict) -> None:
+    def add_message(self, message: Message) -> None:
         self.messages.append(message)
         self.save()
+
+    def get_messages(self) -> List[Dict]:
+        return [asdict(message) for message in self.messages]
 
     def activate_tts(self, session_length: int = TTS_SESSION_LENGTH) -> None:
         self.tts.activate(session_length)
@@ -84,6 +68,9 @@ class Session:
             self.save()
         return is_active
 
+    def total_tokens(self) -> int:
+        return sum(message.tokens for message in self.messages)
+
 
 def get_user_session(user_id: int) -> Session:
     session = mongo.get_session(user_id)
@@ -96,7 +83,7 @@ def get_user_session(user_id: int) -> Session:
 
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
-                      messages=[{"role": "system", "content": SYSTEM_PROMPT}],
+                      messages=[Message(role="system", content=SYSTEM_PROMPT, tokens=0)],
                       tts=TTS.create_inactive())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))

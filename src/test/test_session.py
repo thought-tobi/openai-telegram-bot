@@ -1,8 +1,11 @@
 import time
-from src.data.session import create_new_session, get_user_session
-from src.data import mongo
 from unittest import TestCase
+
 from pymongo.errors import CollectionInvalid
+
+from src.data import mongo
+from src.data.message import Message
+from src.data.session import create_new_session, get_user_session
 
 
 class TestSession(TestCase):
@@ -26,7 +29,7 @@ class TestSession(TestCase):
         user_id = 123
         session = create_new_session(user_id)
         assert len(get_user_session(user_id).messages) == 1
-        session.add_message({"role": "user", "content": "hello world"})
+        session.add_message(Message(role="user", content="hello", tokens=1))
         assert len(get_user_session(user_id).messages) == 2
 
     def test_should_expire_tts(self):
@@ -53,3 +56,10 @@ class TestSession(TestCase):
         time.sleep(2)
         assert get_user_session(user_id).is_tts_active() is False
         assert get_user_session(user_id).tts.voice == "bella"
+
+    def test_should_delete_old_messages_if_tokens_exceed_4096(self):
+        user_id = 123
+        session = create_new_session(user_id)
+        session.add_message(Message(role="system", content="some-message", tokens=2))
+        session.add_message(Message(role="user", content="hello", tokens=1))
+        assert session.total_tokens() == 3

@@ -11,7 +11,8 @@ voices = {
     "bella": "EXAVITQu4vr4xnSDxMaL",
     "donald trump": "6gYZDEbOjI0JvdjKspHv",
     "jordan peterson": "meZSfOJUZoVnXBcCEVvg",
-    "snoop dogg": "RpSFkaZbsz2v2aO78CPw"
+    "snoop dogg": "RpSFkaZbsz2v2aO78CPw",
+    "ben shapiro": "r8jl0Lb8nWKyr8U82q7o"
 }
 JSON = {
     "text": "Hello World!",

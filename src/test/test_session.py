@@ -29,7 +29,7 @@ class TestSession(TestCase):
         user_id = 123
         session = create_new_session(user_id)
         assert len(get_user_session(user_id).messages) == 1
-        session.add_message(Message(role="user", content="hello", tokens=1))
+        session.add_message(Message(role="user", content="hello"))
         assert len(get_user_session(user_id).messages) == 2
 
     def test_should_expire_tts(self):
@@ -57,9 +57,35 @@ class TestSession(TestCase):
         assert get_user_session(user_id).is_tts_active() is False
         assert get_user_session(user_id).tts.voice == "bella"
 
+    def test_should_correctly_count_total_tokens(self):
+        user_id = 123
+        session = create_new_session(user_id)
+        # remove system prompt
+        session.messages.pop(0)
+        session.add_message(Message(role="system", content="some message"))
+        session.add_message(Message(role="user", content="hello"))
+        assert session.total_tokens() == 3
+
     def test_should_delete_old_messages_if_tokens_exceed_4096(self):
         user_id = 123
         session = create_new_session(user_id)
-        session.add_message(Message(role="system", content="some-message", tokens=2))
-        session.add_message(Message(role="user", content="hello", tokens=1))
-        assert session.total_tokens() == 3
+        # remove system prompt
+        session.messages.pop(0)
+
+        session.add_message(Message(role="system", content="some system prompt"))
+        session.add_message(Message(role="user", content="hello"))
+        session.add_message(Message(role="assistant", content="hi"))
+
+        assert session.total_tokens() == 5
+
+        # add tokens to overflow threshold
+        session.add_message(Message(role="user", content="hello" * 4093))
+
+        # verify first message has been deleted and system prompt has been retained
+        assert session.total_tokens() == 4096
+        assert len(session.messages) == 2
+        assert session.messages[0].role == "system"
+
+        # add one more message
+        session.add_message(Message(role="user", content="hi"))
+        assert session.total_tokens() == 4

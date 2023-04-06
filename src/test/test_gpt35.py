@@ -58,5 +58,4 @@ class TestGPT(TestCase):
         )
 
         session.add_message(Message(role="assistant", content=openai_response["choices"][0]["message"]["content"]))
-        print(session)
         assert session.total_tokens() == 6

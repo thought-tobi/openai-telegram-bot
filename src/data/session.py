@@ -47,6 +47,10 @@ class Session:
 
     def add_message(self, message: Message) -> None:
         self.messages.append(message)
+        while self.total_tokens() > 4096:
+            # start at one to retain system prompt
+            logging.info(f"Removing message {self.messages[1]} to keep total token count below 4096")
+            self.messages.pop(1)
         self.save()
 
     def get_messages(self) -> List[Dict]:

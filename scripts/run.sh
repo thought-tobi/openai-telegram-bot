@@ -4,6 +4,8 @@
 if ! [ -x "$(command -v ffmpeg)" ]; then
     echo 'Error: ffmpeg is not installed.' >&2
     exit 1
+else
+    echo "ffmpeg is installed"
 fi
 
 # run mongodb docker image
@@ -18,6 +20,8 @@ fi
 if [ ! -f .env ]; then
   echo "Error: .env file does not exist." >&2
   exit 1
+else
+  echo ".env file exists"
 fi
 
 # get current directory path
@@ -26,4 +30,6 @@ export PYTHONPATH=$PYTHONPATH:$ROOT_DIR
 
 # activate virtual environment
 source venv/bin/activate
+echo "venv activated"
 python src/app.py &
+echo "app started, pid $!"

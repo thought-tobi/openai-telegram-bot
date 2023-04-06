@@ -9,8 +9,9 @@ from dotenv import load_dotenv
 ELEVEN_LABS_API_BASE = "https://api.elevenlabs.io/v1"
 voices = {
     "bella": "EXAVITQu4vr4xnSDxMaL",
-    "trump": "6gYZDEbOjI0JvdjKspHv",
-    "peterson": "meZSfOJUZoVnXBcCEVvg",
+    "donald trump": "6gYZDEbOjI0JvdjKspHv",
+    "jordan peterson": "meZSfOJUZoVnXBcCEVvg",
+    "snoop dogg": "RpSFkaZbsz2v2aO78CPw"
 }
 JSON = {
     "text": "Hello World!",

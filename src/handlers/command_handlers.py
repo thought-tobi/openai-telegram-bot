@@ -40,6 +40,7 @@ async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     voice = update.message.text.replace("/voice ", "").lower()
+    logging.info(voice)
     if voice in voices:
         session = get_user_session(update.effective_user.id)
         session.set_voice(voice)

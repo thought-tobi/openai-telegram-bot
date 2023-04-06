@@ -16,7 +16,7 @@ SYSTEM_PROMPT = f"""
     - Summarise forwarded voice memos
     - Use text-to-speech to read out your responses
     When asked questions about yourself, refer to the /help command for more information.
-    If you cannot perform a task, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
+    If you cannot perform a task for any reason, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
     with a one-sentence explanation of why that is.
 """
 
@@ -46,6 +46,8 @@ class Session:
         self.save()
 
     def add_message(self, message: Message) -> None:
+        if self.tts.is_active() and self.tts.voice != "bella":
+            message.content = f"Answer in the style of {self.tts.voice}: {message.content}"
         self.messages.append(message)
         while self.total_tokens() > 4096:
             # start at one to retain system prompt

@@ -4,7 +4,7 @@ from unittest import TestCase
 from pymongo.errors import CollectionInvalid
 
 from src.data import mongo
-from src.data.message import Message
+from src.data.message import Message, SYSTEM, USER, ASSISTANT
 from src.data.session import create_new_session, get_user_session
 
 
@@ -90,3 +90,17 @@ class TestSession(TestCase):
         # add one more message
         session.add_message(Message(role="user", content="hi"))
         assert session.total_tokens() == 4
+
+    def test_should_handle_reset(self):
+        user_id = 123
+        session = create_new_session(user_id)
+
+        session.add_message(Message(role=SYSTEM, content="some system prompt"))
+        session.add_message(Message(role=USER, content="hello"))
+        session.add_message(Message(role=ASSISTANT, content="hi"))
+
+        session.reset()
+
+        # verify system prompt is still there
+        assert len(session.messages) == 1
+        assert session.messages[0].role == "system"

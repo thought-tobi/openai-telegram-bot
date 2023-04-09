@@ -4,28 +4,10 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.data.edit_message import EditMessage
+from src.data.prompts import HELP_TEXT, PROMPT_HELP, TTS_ENABLED
 from src.data.session import get_user_session
 from src.handlers.text_handlers import handle_prompt
 from src.text_to_speech import voices
-
-HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
-- Try asking me a question – you can even record a voice note.
-- If you forward me a voice note, I can summarize it for you.
-- Type /tts to enable text-to-speech. I will read out my responses.
-Prompt ideas:
-...
-I'm also Open Source! Find me here:
-https://github.com/thought-tobi/openai-telegram-bot
-    """
-
-# hack to forget the session
-PROMPT_HELP = "Forget everything." \
-              "Generate three prompts with less than ten words each." \
-              "Two prompts should showcase ChatGPT's ability to help with day-to-day problems." \
-              "One should be funny, random, or quirky. Give me just the ideas, nothing else."
-
-TTS_ENABLED = "TTS enabled. I will read out my responses. " \
-              "Disable with /tts or by waiting until your session expires [default: 5 minutes]."
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -57,3 +39,9 @@ async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await update.message.reply_text(TTS_ENABLED)
     else:
         await update.message.reply_text("TTS disabled.")
+
+
+async def handle_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = get_user_session(update.effective_user.id)
+    session.reset()
+    await update.message.reply_text("Session reset.")

@@ -6,19 +6,9 @@ import dacite
 
 import src.data.mongo as mongo
 from src.data.message import Message, USER
+from src.data.prompts import SYSTEM_PROMPT
 from src.data.tts import TTS, TTS_SESSION_LENGTH
 
-SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
-SYSTEM_PROMPT = f"""
-    You are a telegram bot interfacing with ChatGPT. Your capabilities are as follows:
-    - Answer user prompts
-    - Understand user voice memos and answer their questions
-    - Summarise forwarded voice memos
-    - Use text-to-speech to read out your responses
-    When asked questions about yourself, refer to the /help command for more information.
-    If you cannot perform a task for any reason, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
-    with a one-sentence explanation of why that is.
-"""
 # should be 4096, but tiktoken seems to be calculating tokens differently than openai's current gpt3.5 implementation
 # this adds some buffer as to not run into any errors
 MAX_SESSION_SIZE = 3072
@@ -49,14 +39,17 @@ class Session:
         self.save()
 
     def add_message(self, message: Message) -> None:
-        if self.tts.is_active() and self.tts.voice != "bella" and message.role == USER:
+        if self.celebrity_voice_answer_enabled(message):
             message.content = f"Answer in the style of {self.tts.voice}: {message.content}"
         self.messages.append(message)
         while self.total_tokens() > MAX_SESSION_SIZE:
             # start at one to retain system prompt
-            logging.info(f"Removing message {self.messages[1]} to keep total token count below 4096")
+            logging.info(f"Removing message {self.messages[1]} to keep total token count below {MAX_SESSION_SIZE}")
             self.messages.pop(1)
         self.save()
+
+    def celebrity_voice_answer_enabled(self, message):
+        return self.tts.is_active() and self.tts.voice != "bella" and message.role == USER
 
     def get_messages(self) -> List[Dict]:
         return [message.dict() for message in self.messages]
@@ -79,6 +72,11 @@ class Session:
 
     def total_tokens(self) -> int:
         return sum(message.tokens for message in self.messages)
+
+    def reset(self) -> None:
+        self.messages = [Message(role="system", content=SYSTEM_PROMPT)]
+        self.reset_tts()
+        self.save()
 
 
 def get_user_session(user_id: int) -> Session:

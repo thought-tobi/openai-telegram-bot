@@ -66,6 +66,7 @@ class TestSession(TestCase):
         session.add_message(Message(role="user", content="hello"))
         assert session.total_tokens() == 3
 
+    # these technically work, but tiktoken counts tokens differently than chatgpt as of 2023-04-09
     def test_should_delete_old_messages_if_tokens_exceed_4096(self):
         user_id = 123
         session = create_new_session(user_id)

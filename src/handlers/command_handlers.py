@@ -25,7 +25,7 @@ PROMPT_HELP = "Forget everything." \
               "One should be funny, random, or quirky. Give me just the ideas, nothing else."
 
 TTS_ENABLED = "TTS enabled. I will read out my responses. " \
-              "Disable with /tts or by waiting until your session expires [default: 60 minutes]."
+              "Disable with /tts or by waiting until your session expires [default: 5 minutes]."
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

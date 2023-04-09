@@ -4,9 +4,9 @@ from typing import List, Dict
 
 import dacite
 
-import mongo as mongo
-from message import Message
-from tts import TTS, TTS_SESSION_LENGTH
+import src.data.mongo as mongo
+from src.data.message import Message
+from src.data.tts import TTS, TTS_SESSION_LENGTH
 
 SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
 SYSTEM_PROMPT = f"""
@@ -19,6 +19,9 @@ SYSTEM_PROMPT = f"""
     If you cannot perform a task for any reason, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
     with a one-sentence explanation of why that is.
 """
+# should be 4096, but tiktoken seems to be calculating tokens differently than openai's current gpt3.5 implementation
+# this adds some buffer as to not run into any errors
+MAX_SESSION_SIZE = 3072
 
 
 @dataclass

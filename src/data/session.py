@@ -7,7 +7,7 @@ import dacite
 import src.data.mongo as mongo
 from src.data.message import Message, USER, SYSTEM
 from src.data.prompts import SYSTEM_PROMPT
-from src.data.tts import TTS, TTS_SESSION_LENGTH
+from src.tts.tts import TTS, TTS_SESSION_LENGTH
 
 # should be 4096, but tiktoken seems to be calculating tokens differently than openai's current gpt3.5 implementation
 # this adds some buffer as to not run into any errors
@@ -76,8 +76,9 @@ class Session:
 
     # not sure if this is the cleanest way to achieve this
     def reset(self) -> None:
-        mongo.delete_session(self.user_id)
-        create_new_session(self.user_id)
+        self.messages = [Message(role=SYSTEM, content=SYSTEM_PROMPT)]
+        self.reset_tts()
+        self.save()
 
 
 def get_user_session(user_id: int) -> Session:

@@ -1,5 +1,10 @@
 from dataclasses import dataclass
+
 import tiktoken
+
+USER = "user"
+ASSISTANT = "assistant"
+SYSTEM = "system"
 
 
 @dataclass

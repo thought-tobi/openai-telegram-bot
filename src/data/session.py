@@ -5,7 +5,7 @@ from typing import List, Dict
 import dacite
 
 import src.data.mongo as mongo
-from src.data.message import Message
+from src.data.message import Message, USER
 from src.data.tts import TTS, TTS_SESSION_LENGTH
 
 SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
@@ -49,10 +49,10 @@ class Session:
         self.save()
 
     def add_message(self, message: Message) -> None:
-        if self.tts.is_active() and self.tts.voice != "bella":
+        if self.tts.is_active() and self.tts.voice != "bella" and message.role == USER:
             message.content = f"Answer in the style of {self.tts.voice}: {message.content}"
         self.messages.append(message)
-        while self.total_tokens() > 4096:
+        while self.total_tokens() > MAX_SESSION_SIZE:
             # start at one to retain system prompt
             logging.info(f"Removing message {self.messages[1]} to keep total token count below 4096")
             self.messages.pop(1)

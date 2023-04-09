@@ -8,12 +8,23 @@ You can find the bot running at [@tobis_openai_bot](https://t.me/tobis_openai_bo
 I'm currently hosting my instance of the bot in an AWS free tier t2.micro EC2 instance.
 You can also host your own version of the bot if you like.
 
+## Adaptability
+
+This bot is really silly. It supports TTS with several celebrity voices. However, I do think the general architecture of it is solid. It supports:
+
+- Session Management with persistence to MongoDB
+- A System Prompt that is retained across a session and determines the behaviour of the ChatGPT backend
+- Text-to-Speech and Speech-to-Text integration
+
+I've written it to be as flexible as possible, and I do hope that it might prove useful to someone.
+
 ## Setting up your own bot
 
 ### Prerequisites
 
 - Python 3.8
 - ffmpeg/ffprobe installed [help](https://help.ftrack.com/en/articles/1040538-installing-ffmpeg-and-ffprobe)
+- A MongoDB Installation
 - A Telegram bot token
 - An OpenAI API key
 - An elevenlabs API key (optional, for text-to-speech)
@@ -46,10 +57,3 @@ This whole project is free and open source. If you want to contribute, please do
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
-## Donations
-
-This is just a silly side project of mine, and I'm not sure it's gonna be particularly valuable to anyone.
-However, if you like this project or find that it's useful to you, 
-you can support me by donating to my [PayPal](https://paypal.me/tobiaswaslowski).
-It helps pay the costs incurred by using the OpenAI and Elevenlabs API.

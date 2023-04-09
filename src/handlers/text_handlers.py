@@ -5,17 +5,17 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from src.data.message import Message
+from src.data.edit_message import EditMessage
+from src.data.message import Message, USER, ASSISTANT
 from src.data.prompts import SYSTEM_UNABLE_TO_RESPOND
 from src.data.session import get_user_session, Session
-from src.data.edit_message import EditMessage
 from src.text_to_speech import text_to_speech
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
-    session.messages.append(Message(role="assistant", content=original_text))
+    session.messages.append(Message(role=ASSISTANT, content=original_text))
     session.save()
     await handle_prompt(update, update.message.text)
 
@@ -37,7 +37,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
-    session.add_message(Message(role="user", content=prompt))
+    session.add_message(Message(role=USER, content=prompt))
     logging.info(f"Effective prompt: {prompt}")
 
     # get chatgpt response
@@ -47,7 +47,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     )
 
     response = openai_response["choices"][0]["message"]["content"]
-    session.add_message(Message(role="assistant", content=response))
+    session.add_message(Message(role=ASSISTANT, content=response))
     logging.info(f"Response: {response}")
     await send_response(session, response, update, msg)
 
@@ -69,4 +69,7 @@ async def send_response(session: Session, response: str, update: Update, msg: Ed
 
 
 def should_perform_tts(response, session):
-    return session.tts.is_active() and SYSTEM_UNABLE_TO_RESPOND not in response
+    # try to determine if chatgpt refused to answer the prompt as intended
+    return session.tts.is_active() \
+           and SYSTEM_UNABLE_TO_RESPOND.lower() not in response.lower() \
+           and "as an ai language model" not in response.lower()

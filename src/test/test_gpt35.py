@@ -2,7 +2,7 @@ import openai
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.data.message import Message
+from src.data.message import Message, USER, ASSISTANT
 from src.data.session import create_new_session
 import src.data.mongo as mongo
 from pymongo.errors import CollectionInvalid
@@ -49,7 +49,7 @@ class TestGPT(TestCase):
         session = create_new_session(user_id)
         # remove system prompt
         session.messages = []
-        session.add_message(Message(role="user", content="Hello World!"))
+        session.add_message(Message(role=USER, content="Hello World!"))
 
         # get chatgpt response
         openai_response = openai.ChatCompletion.create(
@@ -57,5 +57,5 @@ class TestGPT(TestCase):
             messages=session.get_messages()
         )
 
-        session.add_message(Message(role="assistant", content=openai_response["choices"][0]["message"]["content"]))
+        session.add_message(Message(role=ASSISTANT, content=openai_response["choices"][0]["message"]["content"]))
         assert session.total_tokens() == 6

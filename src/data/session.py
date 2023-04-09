@@ -5,7 +5,7 @@ from typing import List, Dict
 import dacite
 
 import src.data.mongo as mongo
-from src.data.message import Message, USER
+from src.data.message import Message, USER, SYSTEM
 from src.data.prompts import SYSTEM_PROMPT
 from src.data.tts import TTS, TTS_SESSION_LENGTH
 
@@ -40,7 +40,8 @@ class Session:
 
     def add_message(self, message: Message) -> None:
         if self.celebrity_voice_answer_enabled(message):
-            message.content = f"Answer in the style of {self.tts.voice}: {message.content}"
+            message.content = f"Answer in the style of {self.tts.voice}: {message.content}. " \
+                              f"Be concise (two sentences max)."
         self.messages.append(message)
         while self.total_tokens() > MAX_SESSION_SIZE:
             # start at one to retain system prompt
@@ -73,10 +74,10 @@ class Session:
     def total_tokens(self) -> int:
         return sum(message.tokens for message in self.messages)
 
+    # not sure if this is the cleanest way to achieve this
     def reset(self) -> None:
-        self.messages = [Message(role="system", content=SYSTEM_PROMPT)]
-        self.reset_tts()
-        self.save()
+        mongo.delete_session(self.user_id)
+        create_new_session(self.user_id)
 
 
 def get_user_session(user_id: int) -> Session:
@@ -90,7 +91,7 @@ def get_user_session(user_id: int) -> Session:
 
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
-                      messages=[Message(role="system", content=SYSTEM_PROMPT)],
+                      messages=[Message(role=SYSTEM, content=SYSTEM_PROMPT)],
                       tts=TTS.create_inactive())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))

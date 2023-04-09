@@ -12,7 +12,7 @@ SYSTEM_PROMPT = f"""
     - Summarise forwarded voice memos
     - Use text-to-speech to read out your responses
     When asked questions about yourself, refer to the /help command for more information.
-    If you cannot perform a task for any reason, reply exactly with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
+    If you cannot perform a task for any reason, reply EXACTLY with '{SYSTEM_UNABLE_TO_RESPOND}', and follow up
     with a one-sentence explanation of why that is.
 """
 

@@ -29,7 +29,7 @@ class TestSession(TestCase):
         user_id = 123
         session = create_new_session(user_id)
         assert len(get_user_session(user_id).messages) == 1
-        session.add_message(Message(role="user", content="hello"))
+        session.add_message(Message(role=USER, content="hello"))
         assert len(get_user_session(user_id).messages) == 2
 
     def test_should_expire_tts(self):
@@ -47,10 +47,10 @@ class TestSession(TestCase):
         user_id = 123
         session = create_new_session(user_id)
         session.tts.activate(2)
-        session.set_voice("peterson")
+        session.set_voice("jordan peterson")
 
         # get session
-        assert get_user_session(user_id).tts.voice == "peterson"
+        assert get_user_session(user_id).tts.voice == "jordan peterson"
 
         # session expires
         time.sleep(2)
@@ -62,8 +62,8 @@ class TestSession(TestCase):
         session = create_new_session(user_id)
         # remove system prompt
         session.messages.pop(0)
-        session.add_message(Message(role="system", content="some message"))
-        session.add_message(Message(role="user", content="hello"))
+        session.add_message(Message(role=SYSTEM, content="some message"))
+        session.add_message(Message(role=USER, content="hello"))
         assert session.total_tokens() == 3
 
     # these technically work, but tiktoken counts tokens differently than chatgpt as of 2023-04-09
@@ -73,22 +73,22 @@ class TestSession(TestCase):
         # remove system prompt
         session.messages.pop(0)
 
-        session.add_message(Message(role="system", content="some system prompt"))
-        session.add_message(Message(role="user", content="hello"))
-        session.add_message(Message(role="assistant", content="hi"))
+        session.add_message(Message(role=SYSTEM, content="some system prompt"))
+        session.add_message(Message(role=USER, content="hello"))
+        session.add_message(Message(role=ASSISTANT, content="hi"))
 
         assert session.total_tokens() == 5
 
         # add tokens to overflow threshold
-        session.add_message(Message(role="user", content="hello" * 4093))
+        session.add_message(Message(role=USER, content="hello" * 4093))
 
         # verify first message has been deleted and system prompt has been retained
         assert session.total_tokens() == 4096
         assert len(session.messages) == 2
-        assert session.messages[0].role == "system"
+        assert session.messages[0].role == SYSTEM
 
         # add one more message
-        session.add_message(Message(role="user", content="hi"))
+        session.add_message(Message(role=USER, content="hi"))
         assert session.total_tokens() == 4
 
     def test_should_handle_reset(self):
@@ -103,4 +103,4 @@ class TestSession(TestCase):
 
         # verify system prompt is still there
         assert len(session.messages) == 1
-        assert session.messages[0].role == "system"
+        assert session.messages[0].role == SYSTEM

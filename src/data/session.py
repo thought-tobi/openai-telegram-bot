@@ -4,9 +4,9 @@ from typing import List, Dict
 
 import dacite
 
-import src.data.mongo as mongo
-from src.data.message import Message
-from src.data.tts import TTS, TTS_SESSION_LENGTH
+import mongo as mongo
+from message import Message
+from tts import TTS, TTS_SESSION_LENGTH
 
 SYSTEM_UNABLE_TO_RESPOND = "I cannot do that"
 SYSTEM_PROMPT = f"""

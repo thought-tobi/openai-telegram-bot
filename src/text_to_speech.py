@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+import boto3
 
 import requests
 from dotenv import load_dotenv
@@ -45,6 +46,20 @@ def get_voices():
     print(response.json())
 
 
+def test_polly():
+    polly = boto3.client("polly")
+    response = polly.synthesize_speech(
+        OutputFormat="mp3",
+        Text="Hello World!",
+        VoiceId="Joanna"
+    )
+    filename = f"tmp/{uuid.uuid4()}.mp3"
+    with open(filename, "wb") as f:
+        f.write(response["AudioStream"].read())
+    return filename
+
+
 if __name__ == "__main__":
     load_dotenv()
-    get_voices()
+    # get_voices()
+    test_polly()

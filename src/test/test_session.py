@@ -6,6 +6,7 @@ from pymongo.errors import CollectionInvalid
 from src.data import mongo
 from src.data.message import Message, SYSTEM, USER, ASSISTANT
 from src.data.session import create_new_session, get_user_session
+from src.tts.tts import DEFAULT_VOICE
 
 
 class TestSession(TestCase):
@@ -55,7 +56,7 @@ class TestSession(TestCase):
         # session expires
         time.sleep(2)
         assert get_user_session(user_id).is_tts_active() is False
-        assert get_user_session(user_id).tts.voice == "bella"
+        assert get_user_session(user_id).tts.voice == DEFAULT_VOICE
 
     def test_should_correctly_count_total_tokens(self):
         user_id = 123

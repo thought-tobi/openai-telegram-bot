@@ -7,7 +7,7 @@ from src.data.edit_message import EditMessage
 from src.data.prompts import HELP_TEXT, PROMPT_HELP, TTS_ENABLED
 from src.data.session import get_user_session
 from src.handlers.text_handlers import handle_prompt
-from src.text_to_speech import voices
+from src.tts.elevenlabs import VOICES as ELEVEN_LABS_VOICES
 
 
 async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -23,7 +23,7 @@ async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     voice = update.message.text.replace("/voice ", "").lower()
     logging.info(voice)
-    if voice in voices:
+    if voice in ELEVEN_LABS_VOICES:
         session = get_user_session(update.effective_user.id)
         session.set_voice(voice)
         await update.message.reply_text(f"Voice set to {voice}.")

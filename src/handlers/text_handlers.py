@@ -9,7 +9,7 @@ from src.data.edit_message import EditMessage
 from src.data.message import Message, USER, ASSISTANT
 from src.data.prompts import SYSTEM_UNABLE_TO_RESPOND
 from src.data.session import get_user_session, Session
-from src.text_to_speech import text_to_speech
+from src.tts.text_to_speech import tts
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -56,7 +56,7 @@ async def send_response(session: Session, response: str, update: Update, msg: Ed
     if should_perform_tts(response, session):
         try:
             await msg.message.edit_text("Converting response to speech ...")
-            tts_file = text_to_speech(response, session.tts.voice)
+            tts_file = tts(response, session)
             await update.message.reply_voice(voice=open(tts_file, "rb"))
             os.remove(tts_file)
         except RuntimeError as e:

@@ -7,7 +7,7 @@ import dacite
 import src.session.mongo as mongo
 from src.session.message import Message, USER, SYSTEM
 from src.session.prompts import SYSTEM_PROMPT
-from src.session.tts import TTS, TTS_SESSION_LENGTH
+from src.session.tts import TTS, TTS_SESSION_LENGTH, DEFAULT
 
 # should be 4096, but tiktoken seems to be calculating tokens differently than openai's current gpt3.5 implementation
 # this adds some buffer as to not run into any errors
@@ -45,7 +45,7 @@ class Session:
                               f"Be concise (three sentences max)."
 
     def custom_voice_enabled(self, message):
-        return self.tts.is_active() and self.tts.voice is not None and message.role == USER
+        return self.tts.is_active() and self.tts.voice is not DEFAULT and message.role == USER
 
     def total_tokens(self) -> int:
         return sum(message.tokens for message in self.messages)

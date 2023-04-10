@@ -22,14 +22,14 @@ PAYLOAD = {
 }
 
 API_BASE = "https://api.elevenlabs.io/v1"
-HEADERS = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
 
 
 def elevenlabs_tts(text: str, model_id: str = "bella") -> str:
     logging.info(f"Sending text-to-speech request for text '{text}'")
     PAYLOAD["text"] = text
+    headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
     response = requests.post(f"{API_BASE}/text-to-speech/{VOICES.get(model_id)}", json=PAYLOAD,
-                             headers=HEADERS)
+                             headers=headers)
 
     logging.info(f"Received response in {response.elapsed} (text length: {len(text)}))")
     if response.status_code != 200:

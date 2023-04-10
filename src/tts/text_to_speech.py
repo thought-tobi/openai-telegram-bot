@@ -1,4 +1,5 @@
 from src.session.session import Session
+from src.session.tts import DEFAULT
 from src.tts.elevenlabs import elevenlabs_tts
 from src.tts.polly import polly_tts
 
@@ -9,4 +10,4 @@ def tts(text: str, session: Session) -> str:
 
 
 def determine_tts_api(session: Session):
-    return polly_tts if session.tts.voice is None else elevenlabs_tts
+    return polly_tts if session.tts.voice is DEFAULT else elevenlabs_tts

@@ -3,6 +3,7 @@ import os
 import uuid
 
 import requests
+from dotenv import load_dotenv
 
 VOICES = {
     "bella": "EXAVITQu4vr4xnSDxMaL",
@@ -47,4 +48,5 @@ def get_voices():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     get_voices()

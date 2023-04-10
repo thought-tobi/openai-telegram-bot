@@ -62,7 +62,7 @@ async def send_response(session: Session, response: str, update: Update, msg: Ed
             os.remove(tts_file)
         except RuntimeError as e:
             logging.error("Failed to retrieve TTS, reason: " + str(e))
-            session.reset_tts()
+            session.deactivate_tts()
             await msg.message.edit_text(f"Unfortunately there was an error retrieving the TTS. "
                                         f"Your text response is below. TTS will be disabled for now.\n{response}")
     else:

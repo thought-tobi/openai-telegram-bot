@@ -1,5 +1,6 @@
 from unittest import TestCase
-from src.data.message import Message, USER
+
+from src.session.message import Message, USER
 
 
 class TestMessage(TestCase):

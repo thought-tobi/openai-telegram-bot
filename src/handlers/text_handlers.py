@@ -5,10 +5,10 @@ import openai
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
-from src.data.edit_message import EditMessage
-from src.data.message import Message, USER, ASSISTANT
-from src.data.prompts import SYSTEM_UNABLE_TO_RESPOND
-from src.data.session import get_user_session, Session
+from src.handlers.edit_message import EditMessage
+from src.session.message import Message, USER, ASSISTANT
+from src.session.prompts import SYSTEM_UNABLE_TO_RESPOND
+from src.session.session import get_user_session, Session
 from src.tts.text_to_speech import tts
 
 

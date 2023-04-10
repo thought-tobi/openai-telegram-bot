@@ -6,7 +6,7 @@ from pymongo.errors import CollectionInvalid
 from src.session import mongo
 from src.session.message import Message, SYSTEM, USER, ASSISTANT
 from src.session.session import create_new_session, get_user_session, MAX_SESSION_SIZE
-from src.session.tts import DEFAULT_VOICE
+from src.session import tts
 
 
 class TestSession(TestCase):
@@ -37,6 +37,7 @@ class TestSession(TestCase):
         user_id = 123
         session = create_new_session(user_id)
         assert session.tts.is_active() is False
+
         session.activate_tts(2)
         assert get_user_session(user_id).tts.is_active() is True
 
@@ -56,7 +57,7 @@ class TestSession(TestCase):
         # session expires
         time.sleep(2)
         assert get_user_session(user_id).is_tts_active() is False
-        assert get_user_session(user_id).tts.voice == DEFAULT_VOICE
+        assert get_user_session(user_id).tts.voice == tts.DEFAULT
 
     def test_should_correctly_count_total_tokens(self):
         user_id = 123
@@ -81,7 +82,7 @@ class TestSession(TestCase):
         assert session.total_tokens() == 5
 
         # add tokens to overflow threshold
-        session.add_message(Message(role=USER, content="hello" * MAX_SESSION_SIZE - 3))
+        session.add_message(Message(role=USER, content="hello" * (MAX_SESSION_SIZE - 3)))
 
         # verify first message has been deleted and system prompt has been retained
         assert session.total_tokens() == MAX_SESSION_SIZE

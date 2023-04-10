@@ -37,8 +37,9 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
-    session.add_message(Message(role=USER, content=prompt))
-    logging.info(f"Effective prompt: {prompt}")
+    message = Message(role=USER, content=prompt)
+    session.add_message(message)
+    logging.info(f"Effective prompt: {session.get_messages()[-1]}")
 
     # get chatgpt response
     openai_response = openai.ChatCompletion.create(

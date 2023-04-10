@@ -21,17 +21,19 @@ PAYLOAD = {
 }
 
 API_BASE = "https://api.elevenlabs.io/v1"
+HEADERS = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
 
 
 def elevenlabs_tts(text: str, model_id: str = "bella") -> str:
-    PAYLOAD["text"] = text
-    headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
     logging.info(f"Sending text-to-speech request for text '{text}'")
+    PAYLOAD["text"] = text
     response = requests.post(f"{API_BASE}/text-to-speech/{VOICES.get(model_id)}", json=PAYLOAD,
-                             headers=headers)
+                             headers=HEADERS)
+
     logging.info(f"Received response in {response.elapsed} (text length: {len(text)}))")
     if response.status_code != 200:
         raise RuntimeError(f"Request failed with status code {response.status_code}, reason {response.text}")
+
     filename = f"tmp/{uuid.uuid4()}.mp3"
     with open(filename, "wb") as f:
         f.write(response.content)

@@ -8,7 +8,7 @@ def polly_tts(text: str, voice: str) -> str:
     response = polly.synthesize_speech(
         OutputFormat="mp3",
         Text=text,
-        VoiceId="joanna"
+        VoiceId="Joanna"
     )
     filename = f"tmp/{uuid.uuid4()}.mp3"
     with open(filename, "wb") as f:

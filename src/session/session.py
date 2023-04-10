@@ -4,10 +4,10 @@ from typing import List, Dict
 
 import dacite
 
-import src.data.mongo as mongo
-from src.data.message import Message, USER, SYSTEM
-from src.data.prompts import SYSTEM_PROMPT
-from src.tts.tts import TTS, TTS_SESSION_LENGTH, DEFAULT_VOICE
+import src.session.mongo as mongo
+from src.session.message import Message, USER, SYSTEM
+from src.session.prompts import SYSTEM_PROMPT
+from src.session.tts import TTS, DEFAULT_VOICE, TTS_SESSION_LENGTH
 
 # should be 4096, but tiktoken seems to be calculating tokens differently than openai's current gpt3.5 implementation
 # this adds some buffer as to not run into any errors

@@ -3,10 +3,10 @@ from unittest import TestCase
 
 from pymongo.errors import CollectionInvalid
 
-from src.data import mongo
-from src.data.message import Message, SYSTEM, USER, ASSISTANT
-from src.data.session import create_new_session, get_user_session
-from src.tts.tts import DEFAULT_VOICE
+from src.session import mongo
+from src.session.message import Message, SYSTEM, USER, ASSISTANT
+from src.session.session import create_new_session, get_user_session, MAX_SESSION_SIZE
+from src.session.tts import DEFAULT_VOICE
 
 
 class TestSession(TestCase):
@@ -81,10 +81,10 @@ class TestSession(TestCase):
         assert session.total_tokens() == 5
 
         # add tokens to overflow threshold
-        session.add_message(Message(role=USER, content="hello" * 4093))
+        session.add_message(Message(role=USER, content="hello" * MAX_SESSION_SIZE - 3))
 
         # verify first message has been deleted and system prompt has been retained
-        assert session.total_tokens() == 4096
+        assert session.total_tokens() == MAX_SESSION_SIZE
         assert len(session.messages) == 2
         assert session.messages[0].role == SYSTEM
 

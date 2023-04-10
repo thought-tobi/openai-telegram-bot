@@ -1,11 +1,12 @@
-import openai
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.data.message import Message, USER, ASSISTANT
-from src.data.session import create_new_session
-import src.data.mongo as mongo
+import openai
 from pymongo.errors import CollectionInvalid
+
+import src.session.mongo as mongo
+from src.session.message import Message, USER, ASSISTANT
+from src.session.session import create_new_session
 
 MOCK_RESPONSE = {
     "choices": [

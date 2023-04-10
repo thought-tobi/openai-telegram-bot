@@ -3,18 +3,17 @@ from dataclasses import dataclass
 
 TTS_SESSION_LENGTH = 300
 
-DEFAULT_VOICE = "default"
+DEFAULT = ""
 
 
 @dataclass
 class TTS:
-    voice: str
-    enabled_until: datetime.datetime
+    enabled_until: datetime.datetime = datetime.datetime(1970, 1, 1)
+    voice: str = DEFAULT
 
-    @staticmethod
-    def create_inactive():
-        # create datetime of start of unix time
-        return TTS(voice=DEFAULT_VOICE, enabled_until=datetime.datetime(1970, 1, 1))
+    def reset(self):
+        self.voice = DEFAULT
+        self.enabled_until = datetime.datetime(1970, 1, 1)
 
     def activate(self, session_length: int = TTS_SESSION_LENGTH):
         self.enabled_until = datetime.datetime.now() + datetime.timedelta(seconds=session_length)

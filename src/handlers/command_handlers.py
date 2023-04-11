@@ -44,11 +44,10 @@ async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     session.toggle_image_session()
-    if session.image_session.is_active():
-        await update.message.reply_text("For the next seconds (or until you send /image to disable), all your prompts"
-                                        "will be rendered as images.")
+    if not session.image_session:
+        await update.message.reply_text("Your next prompt will render an image.")
     else:
-        await update.message.reply_text("Image disabled.")
+        await update.message.reply_text("Image rendering canceled.")
 
 
 async def handle_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

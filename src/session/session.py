@@ -5,7 +5,6 @@ from typing import List, Dict
 import dacite
 
 import src.session.mongo as mongo
-from src.session.image_session import ImageSession, IMAGE_SESSION_LENGTH
 from src.session.message import Message, USER, SYSTEM, ASSISTANT
 from src.session.prompts import SYSTEM_PROMPT
 from src.session.tts import TTS, TTS_SESSION_LENGTH, DEFAULT
@@ -20,7 +19,7 @@ class Session:
     user_id: int
     messages: List[Message]
     tts: TTS
-    image_session: ImageSession
+    image_session: bool = False
 
     def save(self) -> None:
         logging.info(f"Saving session state for user {self.user_id}")
@@ -80,17 +79,13 @@ class Session:
             self.activate_tts()
         self.save()
 
-    def toggle_image_session(self, length: int = IMAGE_SESSION_LENGTH) -> None:
-        if self.image_session.is_active():
+    def toggle_image_session(self) -> None:
+        if self.image_session:
             logging.info(f"Disabling image session for user {self.user_id}")
-            self.image_session.reset()
+            self.image_session = False
         else:
             logging.info(f"Enabling image session for user {self.user_id}")
-            self.image_session.activate(length)
-        self.save()
-
-    def is_image_session_active(self) -> bool:
-        return self.image_session.is_active()
+            self.image_session = True
 
     # this has the side effect of removing outdated tts sessions, may want to refactor
     def is_tts_active(self) -> bool:

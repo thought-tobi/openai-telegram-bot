@@ -43,7 +43,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     session.add_message(message)
     logging.info(f"Effective prompt: {session.get_messages()[-1]}")
 
-    if session.is_image_session_active():
+    if session.image_session:
         return await handle_text_to_image(session, update)
 
     # get chatgpt response
@@ -81,7 +81,8 @@ def should_perform_tts(response, session):
            and "as an ai language model" not in response.lower()
 
 
-async def handle_text_to_image(session: Session, update: Update) -> None:
+async def handle_text_to_image(session: Session, update: Update, msg: EditMessage) -> None:
+    session.toggle_image_session()
     prompt = session.get_messages()[-1]["content"]
     openai_response = openai.Image.create(
         prompt=prompt,
@@ -89,4 +90,6 @@ async def handle_text_to_image(session: Session, update: Update) -> None:
         size="1024x1024"
     )
     image_url = openai_response['data'][0]['url']
+    logging.info(f"Image URL: {image_url}")
+    await msg.message.edit_text("Here is your image:")
     await update.message.reply_photo(photo=image_url)

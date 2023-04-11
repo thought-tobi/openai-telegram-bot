@@ -44,7 +44,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     logging.info(f"Effective prompt: {session.get_messages()[-1]}")
 
     if session.image_session:
-        return await handle_text_to_image(session, update)
+        return await handle_text_to_image(session, update, msg)
 
     # get chatgpt response
     openai_response = openai.ChatCompletion.create(

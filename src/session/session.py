@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import List, Dict
 
 import dacite
@@ -86,6 +86,7 @@ class Session:
         else:
             logging.info(f"Enabling image session for user {self.user_id}")
             self.image_session = True
+        self.save()
 
     # this has the side effect of removing outdated tts sessions, may want to refactor
     def is_tts_active(self) -> bool:
@@ -122,7 +123,7 @@ def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
                       messages=[Message(role=SYSTEM, content=SYSTEM_PROMPT)],
                       tts=TTS(),
-                      image_session=ImageSession())
+                      image_session=False)
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))
     return session

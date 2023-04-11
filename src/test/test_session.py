@@ -1,8 +1,6 @@
 import time
 from unittest import TestCase
-from unittest.mock import MagicMock
 
-import openai
 from pymongo.errors import CollectionInvalid
 
 from src.session import mongo
@@ -122,5 +120,4 @@ class TestSession(TestCase):
 
         response = Message(role=ASSISTANT, content="Answer in the style of Jordan Peterson: Baby don't hurt me")
         session.add_message(response)
-        print(session)
         assert "Answer in the style of " not in session.messages[2].content

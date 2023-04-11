@@ -5,7 +5,8 @@ from typing import List, Dict
 import dacite
 
 import src.session.mongo as mongo
-from src.session.message import Message, USER, SYSTEM
+from src.session.image_session import ImageSession, IMAGE_SESSION_LENGTH
+from src.session.message import Message, USER, SYSTEM, ASSISTANT
 from src.session.prompts import SYSTEM_PROMPT
 from src.session.tts import TTS, TTS_SESSION_LENGTH, DEFAULT
 
@@ -19,6 +20,7 @@ class Session:
     user_id: int
     messages: List[Message]
     tts: TTS
+    image_session: ImageSession
 
     def save(self) -> None:
         logging.info(f"Saving session state for user {self.user_id}")
@@ -31,7 +33,9 @@ class Session:
 
     def add_message(self, message: Message) -> None:
         # in case the prompt or the answer needs modification
-        self.add_message_modifiers(message)
+        message = self.add_modifiers(message)
+        message = self.cleanup(message)
+        logging.info(f"Adding message {message} to session {self.user_id}")
         self.messages.append(message)
         while self.total_tokens() > MAX_SESSION_SIZE:
             # start at one to retain system prompt
@@ -39,11 +43,24 @@ class Session:
             self.messages.pop(1)
         self.save()
 
-    def add_message_modifiers(self, message):
+    @staticmethod
+    def cleanup(message: Message) -> Message:
+        content = message.content
+        if message.role == ASSISTANT:
+            # if chatgpt adds something like "answer in the style of <voice>:" to the response, remove it
+            chatgpt_boilerplate = message.content.split(":")
+            if len(chatgpt_boilerplate) > 1:
+                content = chatgpt_boilerplate[1]
+        return Message(message.role, content)
+
+    # modify prompt to get more specific results
+    def add_modifiers(self, message) -> Message:
+        content = message.content
         if self.custom_voice_enabled(message):
-            message.content = f"Respond to the following prompt in the style of {self.tts.voice}:" \
-                              f"{message.content} " \
-                              f"Be concise (three sentences max)."
+            content = f"Respond to the following prompt in the style of {self.tts.voice}:" \
+                      f"{message.content} " \
+                      f"Be concise (three sentences max)."
+        return Message(message.role, content)
 
     def custom_voice_enabled(self, message):
         return self.tts.is_active() and self.tts.voice is not DEFAULT and message.role == USER
@@ -62,6 +79,18 @@ class Session:
             logging.info(f"Enabling TTS for user {self.user_id}")
             self.activate_tts()
         self.save()
+
+    def toggle_image_session(self, length: int = IMAGE_SESSION_LENGTH) -> None:
+        if self.image_session.is_active():
+            logging.info(f"Disabling image session for user {self.user_id}")
+            self.image_session.reset()
+        else:
+            logging.info(f"Enabling image session for user {self.user_id}")
+            self.image_session.activate(length)
+        self.save()
+
+    def is_image_session_active(self) -> bool:
+        return self.image_session.is_active()
 
     # this has the side effect of removing outdated tts sessions, may want to refactor
     def is_tts_active(self) -> bool:
@@ -97,7 +126,8 @@ def get_user_session(user_id: int) -> Session:
 def create_new_session(user_id: int) -> Session:
     session = Session(user_id=user_id,
                       messages=[Message(role=SYSTEM, content=SYSTEM_PROMPT)],
-                      tts=TTS())
+                      tts=TTS(),
+                      image_session=ImageSession())
     logging.info(f"Created new session for user {user_id}")
     mongo.persist_session(asdict(session))
     return session

@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, Application, Comman
 from telegram.ext import filters as Filters
 
 from src.handlers.audio_handlers import handle_voice_note, summarize_voice_note
-from src.handlers.command_handlers import handle_help, handle_tts, handle_voice
+from src.handlers.command_handlers import handle_help, handle_tts, handle_voice, handle_image
 from src.handlers.text_handlers import handle_reply, handle_error, handle_text_message
 
 # setup
@@ -24,6 +24,7 @@ def init_app() -> Application:
     app.add_handler(CommandHandler("help", handle_help))
     app.add_handler(CommandHandler("tts", handle_tts))
     app.add_handler(CommandHandler("voice", handle_voice))
+    app.add_handler(CommandHandler("image", handle_image))
     app.add_handler(MessageHandler(Filters.TEXT & Filters.REPLY, handle_reply))
     app.add_handler(MessageHandler(Filters.VOICE & Filters.FORWARDED, summarize_voice_note))
     app.add_handler(MessageHandler(Filters.TEXT, handle_text_message))

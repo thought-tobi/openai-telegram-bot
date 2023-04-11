@@ -1,6 +1,8 @@
 import time
 from unittest import TestCase
+from unittest.mock import MagicMock
 
+import openai
 from pymongo.errors import CollectionInvalid
 
 from src.session import mongo
@@ -106,3 +108,19 @@ class TestSession(TestCase):
         # verify system prompt is still there
         assert len(session.messages) == 1
         assert session.messages[0].role == SYSTEM
+
+    def test_should_add_modifiers_to_message(self):
+        user_id = 123
+        session = create_new_session(user_id)
+        session.activate_tts(2)
+        session.set_voice("jordan peterson")
+
+        session.add_message(Message(role=USER, content="What is love?"))
+
+        assert "Respond to the following prompt in the style of jordan peterson" in session.messages[1].content
+        assert "Be concise" in session.messages[1].content
+
+        response = Message(role=ASSISTANT, content="Answer in the style of Jordan Peterson: Baby don't hurt me")
+        session.add_message(response)
+        print(session)
+        assert "Answer in the style of " not in session.messages[2].content

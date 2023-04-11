@@ -41,6 +41,16 @@ async def handle_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await update.message.reply_text("TTS disabled.")
 
 
+async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = get_user_session(update.effective_user.id)
+    session.toggle_image_session()
+    if session.image_session.is_active():
+        await update.message.reply_text("For the next seconds (or until you send /image to disable), all your prompts"
+                                        "will be rendered as images.")
+    else:
+        await update.message.reply_text("Image disabled.")
+
+
 async def handle_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     session.reset()

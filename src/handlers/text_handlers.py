@@ -1,7 +1,9 @@
 import logging
 import os
+import uuid
 
 import openai
+import requests
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
@@ -41,6 +43,9 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     session.add_message(message)
     logging.info(f"Effective prompt: {session.get_messages()[-1]}")
 
+    if session.is_image_session_active():
+        return await handle_text_to_image(session, update)
+
     # get chatgpt response
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -74,3 +79,14 @@ def should_perform_tts(response, session):
     return session.tts.is_active() \
            and SYSTEM_UNABLE_TO_RESPOND.lower() not in response.lower() \
            and "as an ai language model" not in response.lower()
+
+
+async def handle_text_to_image(session: Session, update: Update) -> None:
+    prompt = session.get_messages()[-1]["content"]
+    openai_response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size="1024x1024"
+    )
+    image_url = openai_response['data'][0]['url']
+    await update.message.reply_photo(photo=image_url)

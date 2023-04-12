@@ -1,6 +1,7 @@
 import logging
-from dataclasses import dataclass, asdict, field
-from typing import List, Dict
+import os
+from dataclasses import dataclass, asdict
+from typing import List, Dict, Optional
 
 import dacite
 
@@ -20,6 +21,7 @@ class Session:
     messages: List[Message]
     tts: TTS
     image_session: bool = False
+    edit_image: bool = False
 
     def save(self) -> None:
         logging.info(f"Saving session state for user {self.user_id}")
@@ -88,6 +90,14 @@ class Session:
             self.image_session = True
         self.save()
 
+    def start_image_edit_process(self):
+        self.edit_image = True
+        self.save()
+
+    def stop_image_edit_process(self):
+        self.edit_image = False
+        self.save()
+
     # this has the side effect of removing outdated tts sessions, may want to refactor
     def is_tts_active(self) -> bool:
         is_active = self.tts.is_active()
@@ -107,6 +117,7 @@ class Session:
     def reset(self) -> None:
         self.messages = [Message(role=SYSTEM, content=SYSTEM_PROMPT)]
         self.tts.reset()
+        self.edit_image = False
         self.save()
 
 

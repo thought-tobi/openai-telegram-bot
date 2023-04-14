@@ -1,7 +1,7 @@
 from src.session.session import Session
 from src.session.tts import DEFAULT
-from src.tts.elevenlabs import elevenlabs_tts
-from src.tts.polly import polly_tts
+from src.client.tts.elevenlabs import elevenlabs_tts
+from src.client.tts.polly import polly_tts
 
 
 def tts(text: str, session: Session) -> str:

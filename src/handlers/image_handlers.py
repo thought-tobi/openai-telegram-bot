@@ -2,12 +2,12 @@ import logging
 import os
 from typing import List, Tuple
 
-import openai
 from PIL import Image
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.session.session import get_user_session
+from src.client.image import create_edit
 
 FILTER_COLOUR = (255, 255, 255)
 TOLERANCE = 5
@@ -40,10 +40,11 @@ async def handle_image_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
         # create alternative
         create_mask(f'{update.effective_user.id}')
-        url = await create_alternative(original_file=f'tmp/{update.effective_user.id}_original.png',
-                                       mask_file=f'tmp/{update.effective_user.id}_mask.png',
-                                       prompt=update.message.caption)
-        await update.message.reply_photo(photo=url)
+        urls = await create_edit(original_file=f'tmp/{update.effective_user.id}_original.png',
+                                 mask_file=f'tmp/{update.effective_user.id}_mask.png',
+                                 prompt=update.message.caption, number_images=1)
+        for url in urls:
+            await update.message.reply_photo(photo=url)
         # cleanup
         session.stop_image_edit_process()
         os.remove(f'tmp/{update.effective_user.id}_original.png')
@@ -81,18 +82,6 @@ def pixel_approximates_filter_colour(pixel: Tuple[int, int, int]) -> bool:
     fr, fg, fb = FILTER_COLOUR
     # don't allow for a total deviation of more than 10 in any of the RGB values
     return abs((r - fr)) + abs((g - fg)) + abs((b - fb)) < TOLERANCE
-
-
-async def create_alternative(original_file: str, mask_file: str, prompt: str) -> str:
-    response = openai.Image.create_edit(
-        image=open(original_file, "rb"),
-        mask=open(mask_file, "rb"),
-        prompt=prompt,
-        n=1,
-        size="1024x1024"
-    )
-    image_url = response['data'][0]['url']
-    return image_url
 
 
 def pre_process(filename: str) -> None:

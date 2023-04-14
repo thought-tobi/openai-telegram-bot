@@ -3,18 +3,18 @@ import os
 
 import openai
 from telegram import Update
-from telegram.ext import ContextTypes, CallbackContext
+from telegram.ext import CallbackContext
 
 from src.handlers.edit_message import EditMessage
 from src.session.message import Message, USER, ASSISTANT
 from src.session.prompts import SYSTEM_UNABLE_TO_RESPOND
 from src.session.session import get_user_session, Session
-from src.tts.text_to_speech import tts
+from src.client.tts.text_to_speech import tts
 from src.client.chat import chat_completion
 from src.client.image import create_image
 
 
-async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_reply(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
     session.messages.append(Message(role=ASSISTANT, content=original_text))

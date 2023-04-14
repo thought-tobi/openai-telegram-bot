@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 import tiktoken
 
@@ -18,3 +18,6 @@ class Message:
         except KeyError:
             encoding = tiktoken.get_encoding("cl100k_base")
         return len(encoding.encode(self.content))
+
+    def asdict(self) -> dict:
+        return asdict(self)

@@ -20,7 +20,7 @@ START_EDIT_RESPONSE = "Send the modified image (draw a white shape over the area
 async def handle_image_message(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
     image_status = 'original' if not session.edit_image else 'modified'
-    download_image(update, image_status)
+    await download_image(update, image_status)
     if not session.edit_image:
         session.start_image_edit_process()
         await update.message.reply_text(START_EDIT_RESPONSE)
@@ -30,7 +30,7 @@ async def handle_image_message(update: Update, _) -> None:
         await cleanup(session, update)
 
 
-def download_image(update: Update, image_status: str):
+async def download_image(update: Update, image_status: str):
     logging.info(f"Image editing session: received image from {update.effective_user.id}: "
                  f"{update.message.photo[-1].file_id} as {image_status} image")
     img_id = await update.message.photo[-1].get_file()
@@ -39,7 +39,8 @@ def download_image(update: Update, image_status: str):
     pre_process(filename)
 
 
-async def create_edit_images(update):
+async def create_edit_images(update: Update):
+    await update.message.reply_to_message.reply_text("Creating an edit ...")
     create_mask(f'{update.effective_user.id}')
     urls = await create_edit(original_file=f'tmp/{update.effective_user.id}_original.png',
                              mask_file=f'tmp/{update.effective_user.id}_mask.png',

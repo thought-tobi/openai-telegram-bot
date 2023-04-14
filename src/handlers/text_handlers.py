@@ -1,9 +1,7 @@
 import logging
 import os
-import uuid
 
 import openai
-import requests
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 
@@ -12,14 +10,14 @@ from src.session.message import Message, USER, ASSISTANT
 from src.session.prompts import SYSTEM_UNABLE_TO_RESPOND
 from src.session.session import get_user_session, Session
 from src.tts.text_to_speech import tts
+from src.client.chat import chat_completion
+from src.client.image import create_image
 
 
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = get_user_session(update.effective_user.id)
     original_text = update.message.reply_to_message.text
     session.messages.append(Message(role=ASSISTANT, content=original_text))
-    session.save()
-    await handle_prompt(update, update.message.text)
 
 
 async def handle_error(update: object, context: CallbackContext) -> None:
@@ -32,7 +30,13 @@ async def handle_error(update: object, context: CallbackContext) -> None:
 
 async def handle_text_message(update: Update, _) -> None:
     logging.info(f"Received message from {update.effective_user.id}: {update.message.text}")
-    await handle_prompt(update, update.message.text)
+    # retrieve and prepare user session
+    session = get_user_session(update.effective_user.id)
+    session.add_message(Message(role=USER, content=update.message.text))
+    # get and return response
+    response = await chat_completion(session.messages)
+    session.add_message(response)
+    await update.message.reply_text(response.content)
 
 
 async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
@@ -43,7 +47,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     session = get_user_session(update.effective_user.id)
     message = Message(role=USER, content=prompt)
     session.add_message(message)
-    logging.info(f"Effective prompt: {session.get_messages()[-1]}")
+    logging.info(f"Effective prompt: {session.messages[-1]}")
 
     if session.image_session:
         return await handle_text_to_image(session, update, msg)
@@ -51,7 +55,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     # get chatgpt response
     openai_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=session.get_messages()
+        messages=session.messages
     )
 
     response = openai_response["choices"][0]["message"]["content"]
@@ -85,13 +89,10 @@ def should_perform_tts(response, session):
 
 async def handle_text_to_image(session: Session, update: Update, msg: EditMessage) -> None:
     session.toggle_image_session()
-    prompt = session.get_messages()[-1]["content"]
-    openai_response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size="1024x1024"
-    )
-    image_url = openai_response['data'][0]['url']
-    logging.info(f"Image URL: {image_url}")
+    prompt = session.messages[-1].content
+
+    urls = create_image(prompt, 1)
+    logging.info(f"Image URLs: {urls}")
     await msg.message.edit_text("Here is your image:")
-    await update.message.reply_photo(photo=image_url)
+    for url in urls:
+        await update.message.reply_photo(photo=url)

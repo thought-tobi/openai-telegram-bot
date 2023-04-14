@@ -67,10 +67,7 @@ class Session:
         return self.tts.is_active() and self.tts.voice is not DEFAULT and message.role == USER
 
     def total_tokens(self) -> int:
-        return sum(message.tokens for message in self.messages)
-
-    def get_messages(self) -> List[Dict]:
-        return [message.dict() for message in self.messages]
+        return sum(message.calculate_tokens() for message in self.messages)
 
     def toggle_tts(self) -> None:
         if self.tts.is_active():

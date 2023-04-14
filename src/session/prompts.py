@@ -16,26 +16,9 @@ SYSTEM_PROMPT = f"""
     with a one-sentence explanation of why that is.
 """
 
-# displayed with the /help command
-HELP_TEXT = """Hi! I'm a ChatGPT bot. I can answer your questions and reply to prompts.
-- Try asking me a question – you can even record a voice note.
-- Forward me a voice note to have it summarised.
-- Type /tts to enable text-to-speech. I will read out my responses.
-- Type /reset to have me forget our previous interactions.
-Prompt ideas:
-...
-I'm also Open Source! Find me here:
-https://github.com/thought-tobi/openai-telegram-bot
-    """
 
 # generates example prompts for the /help command
 # "forget everything" so the previous prompts does not affect the outcome of this prompt.
-PROMPT_HELP = "Forget everything." \
-              "Generate three prompts with less than ten words each." \
+PROMPT_IDEAS_PROMPT = "Generate three prompts with less than ten words each." \
               "Two prompts should showcase ChatGPT's ability to help with day-to-day problems." \
               "One should be funny, random, or quirky. Give me just the ideas, nothing else."
-
-
-# displayed when the user enables text-to-speech
-TTS_ENABLED = "TTS enabled. I will read out my responses. " \
-              "Disable with /tts or by waiting until your session expires [default: 5 minutes]."

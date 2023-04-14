@@ -4,52 +4,52 @@ from typing import List, Tuple
 
 from PIL import Image
 from telegram import Update
-from telegram.ext import ContextTypes
 
-from src.session.session import get_user_session
 from src.client.image import create_edit
+from src.session.session import get_user_session
 
 FILTER_COLOUR = (255, 255, 255)
 TOLERANCE = 5
+START_EDIT_RESPONSE = "Send the modified image (draw a white shape over the area you want to edit), " \
+                      "alongside a description of the edit you'd like to see."
 
 
-async def handle_image_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def download_image(update: Update, image_status: str):
+    logging.info(f"Image editing session: received image from {update.effective_user.id}: "
+                 f"{update.message.photo[-1].file_id} as {image_status} image")
+    img_id = await update.message.photo[-1].get_file()
+    filename = f'tmp/{update.effective_user.id}_{image_status}.jpeg'
+    await img_id.download_to_drive(filename)
+    pre_process(filename)
+
+
+async def handle_image_message(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
+    image_status = 'original' if not session.edit_image else 'modified'
+    download_image(update, image_status)
     if not session.edit_image:
-        # first image is the original image
-        logging.info(f"Image editing session: received image from {update.effective_user.id}: "
-                     f"{update.message.photo[-1].file_id} as original image")
-        # download image
-        img = await update.message.photo[-1].get_file()
-        filename = f'tmp/{update.effective_user.id}_original.jpeg'
-        await img.download_to_drive(filename)
-        pre_process(filename)
-        # update internal state
         session.start_image_edit_process()
-        await update.message.reply_text("Send the modified image (draw a white shape over the area you want to edit), "
-                                        "alongside a description of the edit you'd like to see.")
+        await update.message.reply_text(START_EDIT_RESPONSE)
     else:
-        # first image exists, this one is the modified one for editing
-        logging.info(f"Image editing session: received image from {update.effective_user.id}: "
-                     f"{update.message.photo[-1].file_id} as modified image")
-        # download message
-        img = await update.message.photo[-1].get_file()
-        await img.download_to_drive(f'tmp/{update.effective_user.id}_modified.jpeg')
-        pre_process(f'tmp/{update.effective_user.id}_modified.jpeg')
-        await update.message.reply_text("Image received. Generating alternative...")
+        # create alternative, todo update count argument
+        await create_edit_images(update)
+        await cleanup(session, update)
 
-        # create alternative
-        create_mask(f'{update.effective_user.id}')
-        urls = await create_edit(original_file=f'tmp/{update.effective_user.id}_original.png',
-                                 mask_file=f'tmp/{update.effective_user.id}_mask.png',
-                                 prompt=update.message.caption, number_images=1)
-        for url in urls:
-            await update.message.reply_photo(photo=url)
-        # cleanup
-        session.stop_image_edit_process()
-        os.remove(f'tmp/{update.effective_user.id}_original.png')
-        os.remove(f'tmp/{update.effective_user.id}_modified.png')
-        os.remove(f'tmp/{update.effective_user.id}_mask.png')
+
+async def create_edit_images(update):
+    create_mask(f'{update.effective_user.id}')
+    urls = await create_edit(original_file=f'tmp/{update.effective_user.id}_original.png',
+                             mask_file=f'tmp/{update.effective_user.id}_mask.png',
+                             prompt=update.message.caption, number_images=1)
+    for url in urls:
+        await update.message.reply_photo(photo=url)
+
+
+async def cleanup(session, update):
+    session.stop_image_edit_process()
+    os.remove(f'tmp/{update.effective_user.id}_original.png')
+    os.remove(f'tmp/{update.effective_user.id}_modified.png')
+    os.remove(f'tmp/{update.effective_user.id}_mask.png')
 
 
 # generates mask from an image that contains a white area
@@ -90,8 +90,3 @@ def pre_process(filename: str) -> None:
                                   .replace(".jpeg", "")
                                   .replace(".jpg", "") + ".png")
     os.remove(filename)
-
-
-if __name__ == '__main__':
-    img = Image.open("tmp/1965256751_modified.jpeg")
-    img.resize((1024, 1024)).save("tmp/resize_test.png")

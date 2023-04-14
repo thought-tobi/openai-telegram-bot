@@ -7,12 +7,7 @@ from src.handlers.edit_message import EditMessage
 from src.session.prompts import HELP_TEXT, PROMPT_HELP, TTS_ENABLED
 from src.session.session import get_user_session
 from src.handlers.text_handlers import handle_prompt
-from src.tts.elevenlabs import VOICES as ELEVEN_LABS_VOICES
-
-
-async def handle_text_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logging.info(f"Received message: {update.message.text} from user {update.effective_user.id}")
-    await handle_prompt(update, update.message.text)
+from src.client.tts.elevenlabs import VOICES as ELEVEN_LABS_VOICES
 
 
 async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

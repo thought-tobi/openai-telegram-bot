@@ -13,14 +13,8 @@ TOLERANCE = 5
 START_EDIT_RESPONSE = "Send the modified image (draw a white shape over the area you want to edit), " \
                       "alongside a description of the edit you'd like to see."
 
-
-def download_image(update: Update, image_status: str):
-    logging.info(f"Image editing session: received image from {update.effective_user.id}: "
-                 f"{update.message.photo[-1].file_id} as {image_status} image")
-    img_id = await update.message.photo[-1].get_file()
-    filename = f'tmp/{update.effective_user.id}_{image_status}.jpeg'
-    await img_id.download_to_drive(filename)
-    pre_process(filename)
+# todo count argument
+# todo possibility for image alternatives
 
 
 async def handle_image_message(update: Update, _) -> None:
@@ -34,6 +28,15 @@ async def handle_image_message(update: Update, _) -> None:
         # create alternative, todo update count argument
         await create_edit_images(update)
         await cleanup(session, update)
+
+
+def download_image(update: Update, image_status: str):
+    logging.info(f"Image editing session: received image from {update.effective_user.id}: "
+                 f"{update.message.photo[-1].file_id} as {image_status} image")
+    img_id = await update.message.photo[-1].get_file()
+    filename = f'tmp/{update.effective_user.id}_{image_status}.jpeg'
+    await img_id.download_to_drive(filename)
+    pre_process(filename)
 
 
 async def create_edit_images(update):

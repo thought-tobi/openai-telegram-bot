@@ -1,7 +1,6 @@
 import logging
-import os
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional
+from typing import List
 
 import dacite
 
@@ -22,6 +21,7 @@ class Session:
     tts: TTS
     image_session: bool = False
     edit_image: bool = False
+    image_count: int = 1
 
     def save(self) -> None:
         logging.info(f"Saving session state for user {self.user_id}")
@@ -115,6 +115,10 @@ class Session:
         self.messages = [Message(role=SYSTEM, content=SYSTEM_PROMPT)]
         self.tts.reset()
         self.edit_image = False
+        self.save()
+
+    def set_count(self, count):
+        self.image_count = count
         self.save()
 
 

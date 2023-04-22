@@ -48,7 +48,7 @@ async def handle_text_to_image(session: Session, update: Update, msg: EditMessag
     session.toggle_image_session()
     prompt = session.messages[-1].content
 
-    urls = create_image(prompt, 1)
+    urls = create_image(prompt, session.image_count)
     logging.info(f"Image URLs: {urls}")
     await msg.message.edit_text("Here is your image:")
     for url in urls:

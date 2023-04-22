@@ -67,3 +67,23 @@ async def handle_reset(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
     session.reset()
     await update.message.reply_text("Session reset.")
+
+
+async def handle_count(update: Update, _) -> None:
+    session = get_user_session(update.effective_user.id)
+    try:
+        count = parse_count(update.message.text)
+    except ValueError:
+        await update.message.reply_text("Please supply exactly one integer between 1 and 4 as argument."
+                                        "Example: /count 3")
+        return
+    session.set_count(count)
+    await update.message.reply_text(f"When creating or editing images, {session.image_count} images will be generated.")
+
+
+def parse_count(message: str):
+    # accepts integer between 1 and 4
+    count = int(message.replace("/count ", ""))
+    if count < 1 or count > 4:
+        raise ValueError("Count must be between 1 and 4")
+    return count

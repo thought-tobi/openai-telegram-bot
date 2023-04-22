@@ -5,7 +5,7 @@ from typing import List, Tuple
 from PIL import Image
 from telegram import Update
 
-from src.client.image import create_edit
+from src.client.image import create_edit, create_alternative
 from src.session.session import get_user_session
 
 FILTER_COLOUR = (255, 255, 255)
@@ -13,19 +13,28 @@ TOLERANCE = 5
 START_EDIT_RESPONSE = "Send the modified image (draw a white shape over the area you want to edit), " \
                       "alongside a description of the edit you'd like to see."
 
-# todo count argument
-# todo possibility for image alternatives
+
+async def _create_alternative(update: Update, count: int):
+    await download_image(update, 'alternative')
+    urls = create_alternative(f'tmp/{update.effective_user.id}_alternative.png', count)
+    for url in urls:
+        await update.message.reply_photo(photo=url)
 
 
 async def handle_image_message(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
+
+    if update.message.caption == "/alternative":
+        await _create_alternative(update, session.image_count)
+        return
+
     image_status = 'original' if not session.edit_image else 'modified'
     await download_image(update, image_status)
     if not session.edit_image:
         session.start_image_edit_process()
         await update.message.reply_text(START_EDIT_RESPONSE)
     else:
-        # create alternative, todo update count argument
+        # create edit, todo update count argument
         await create_edit_images(update)
         await cleanup(session, update)
 
@@ -40,11 +49,12 @@ async def download_image(update: Update, image_status: str):
 
 
 async def create_edit_images(update: Update):
-    await update.message.reply_to_message.reply_text("Creating an edit ...")
+    await update.message.reply_text("Creating an edit ...")
     create_mask(f'{update.effective_user.id}')
     urls = await create_edit(original_file=f'tmp/{update.effective_user.id}_original.png',
                              mask_file=f'tmp/{update.effective_user.id}_mask.png',
-                             prompt=update.message.caption, number_images=1)
+                             prompt=update.message.caption,
+                             number_images=get_user_session(update.effective_user.id).image_count)
     for url in urls:
         await update.message.reply_photo(photo=url)
 

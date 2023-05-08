@@ -20,14 +20,16 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
-    session.add_message(Message(role=USER, content=prompt))
+    message = Message(role=USER, content=prompt)
+    session.add_message(message)
     # todo make message modification more transparent
     logging.info(f"Effective prompt: {session.messages[-1]}")
 
     if session.image_session:
         return await handle_text_to_image(session, update, msg)
 
-    response = await chat_completion(session.messages)
+    model = "gpt-4" if session.custom_voice_enabled(message) else "gpt-3.5-turbo"
+    response = await chat_completion(session.messages, model)
 
     session.add_message(response)
     logging.info(f"Response: {response}")

@@ -61,6 +61,7 @@ async def create_edit_images(update: Update):
 
 async def cleanup(session, update):
     session.stop_image_edit_process()
+    session.image_count = 1
     os.remove(f'tmp/{update.effective_user.id}_original.png')
     os.remove(f'tmp/{update.effective_user.id}_modified.png')
     os.remove(f'tmp/{update.effective_user.id}_mask.png')

@@ -58,9 +58,7 @@ class Session:
     def add_modifiers(self, message) -> Message:
         content = message.content
         if self.custom_voice_enabled(message):
-            content = f"Respond to the following prompt in the style of {self.tts.voice}:" \
-                      f"{message.content} " \
-                      f"Be concise (three sentences max)."
+            content = f"Respond to the following prompt in the style of {self.tts.voice}: {message.content}"
         return Message(message.role, content)
 
     def custom_voice_enabled(self, message):

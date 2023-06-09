@@ -44,7 +44,14 @@ async def send_response(response: str, update: Update, msg: EditMessage):
         await update.message.reply_voice(voice=open(tts_file, "rb"))
         os.remove(tts_file)
     else:
-        await msg.message.edit_text(msg.replace(response))
+        # usually, if the ai fails to respond once, it's primed to keep doing so
+        # send fallback, reset session
+        await update.message.reply_voice(voice=open("assets/request_denied_2.mp3", "rb"))
+        await update.message.reply_text(
+            "Tip: ChatGPT has relatively heavy restrictions, particularly on political things. Here's a few things to try:"
+            "- Don't say 'answer as Donald Trump' or anything like that. We handle that for you."
+            "- Avoid overly political, violent or otherwise sensitive topics.")
+        get_user_session(update.effective_user.id).reset()
 
 
 def should_perform_tts(response):

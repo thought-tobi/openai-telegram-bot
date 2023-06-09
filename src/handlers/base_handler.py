@@ -26,7 +26,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     message = Message(role=USER, content=enrich_prompt(prompt))
     session.add_message(message)
 
-    response = await chat_completion(session.messages, "gpt-4")
+    response = await chat_completion(session.messages, "gpt-3.5-turbo")
 
     session.add_message(response)
     logging.info(f"Response: {response}")

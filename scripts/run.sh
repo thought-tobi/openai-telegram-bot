@@ -13,7 +13,7 @@ docker ps --format '{{.Names}}' | grep -q mongo
 if [ "$?" -eq 0 ]; then
   echo "mongodb is already running"
 else
-  docker run -d -p 27017:27017 --name mongodb mongo:latest
+  docker run -d -p 27017:27017 --name mongodb-donald mongo:latest
 fi
 
 # check that .env exists

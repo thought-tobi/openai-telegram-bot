@@ -1,9 +1,6 @@
-import logging
-
 from telegram import Update
 
 from src.client.chat import chat_completion
-from src.client.tts.elevenlabs import VOICES as ELEVEN_LABS_VOICES
 from src.session.message import USER, Message
 from src.session.prompts import PROMPT_IDEAS_PROMPT
 from src.session.session import get_user_session
@@ -29,61 +26,11 @@ TTS_ENABLED = "TTS enabled. I will read out my responses. " \
 
 async def handle_help(update: Update, _) -> None:
     msg = await update.message.reply_text(HELP_TEXT)
-    prompt_suggestions = await chat_completion([Message(role=USER, content=PROMPT_IDEAS_PROMPT)])
+    prompt_suggestions = await chat_completion([Message(role=USER, content=PROMPT_IDEAS_PROMPT)], model="gpt-4")
     await msg.edit_text(msg.text.replace(PROMPT_IDEAS_PLACEHOLDER, prompt_suggestions.content))
-
-
-async def handle_voice(update: Update, _) -> None:
-    voice = update.message.text.replace("/voice ", "").lower()
-    logging.info(voice)
-    if voice in ELEVEN_LABS_VOICES:
-        session = get_user_session(update.effective_user.id)
-        session.set_voice(voice)
-        await update.message.reply_text(f"Voice set to {voice}.")
-    else:
-        logging.info(f"Voice {voice} not found")
-        await update.message.reply_text(f"Voice '{voice}' not found. Please try again.")
-
-
-async def handle_tts(update: Update, _) -> None:
-    session = get_user_session(update.effective_user.id)
-    session.toggle_tts()
-    if session.tts.is_active():
-        await update.message.reply_text(TTS_ENABLED)
-    else:
-        await update.message.reply_text("TTS disabled.")
-
-
-async def handle_image(update: Update, _) -> None:
-    session = get_user_session(update.effective_user.id)
-    session.toggle_image_session()
-    if session.image_session:
-        await update.message.reply_text("Your next prompt will render an image.")
-    else:
-        await update.message.reply_text("Image rendering canceled.")
 
 
 async def handle_reset(update: Update, _) -> None:
     session = get_user_session(update.effective_user.id)
     session.reset()
     await update.message.reply_text("Session reset.")
-
-
-async def handle_count(update: Update, _) -> None:
-    session = get_user_session(update.effective_user.id)
-    try:
-        count = parse_count(update.message.text)
-    except ValueError:
-        await update.message.reply_text("Please supply exactly one integer between 1 and 4 as argument."
-                                        "Example: /count 3")
-        return
-    session.set_count(count)
-    await update.message.reply_text(f"When creating or editing images, {session.image_count} images will be generated.")
-
-
-def parse_count(message: str):
-    # accepts integer between 1 and 4
-    count = int(message.replace("/count ", ""))
-    if count < 1 or count > 4:
-        raise ValueError("Count must be between 1 and 4")
-    return count

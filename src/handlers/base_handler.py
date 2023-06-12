@@ -48,7 +48,8 @@ async def send_response(response: str, update: Update, msg: EditMessage):
     else:
         # usually, if the ai fails to respond once, it's primed to keep doing so
         # send fallback, reset session
-        await update.message.reply_voice(voice=open("assets/request_denied_2.mp3", "rb"))
+        # await update.message.reply_voice(voice=open("assets/request_denied_2.mp3", "rb"))
+        await update.message.reply_text("ChatGPT could not answer this request.")
         await update.message.reply_text(
             "Tip: ChatGPT has relatively heavy restrictions, particularly on political things. Here's a few things to try:"
             "- Don't say 'answer as Donald Trump' or anything like that. We handle that for you."

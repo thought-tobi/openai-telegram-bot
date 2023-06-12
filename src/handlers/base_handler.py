@@ -14,6 +14,7 @@ from src.session.session import get_user_session
 load_dotenv()
 voice_name = os.getenv("VOICE_NAME").replace("_", " ")
 voice_id = os.getenv("VOICE_ID")
+model = os.getenv("MODEL")
 
 
 async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
@@ -26,7 +27,7 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     message = Message(role=USER, content=enrich_prompt(prompt))
     session.add_message(message)
 
-    response = await chat_completion(session.messages, "gpt-3.5-turbo")
+    response = await chat_completion(session.messages, model)
 
     session.add_message(response)
     logging.info(f"Response: {response}")

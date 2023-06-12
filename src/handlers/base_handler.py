@@ -34,7 +34,8 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
 
 
 def enrich_prompt(prompt) -> str:
-    return f"Respond to the following prompt in the style of {voice_name}: {prompt}"
+    return f"Respond to the following prompt in the style of {voice_name}. Try to make the response moderately short " \
+           f"(four to six sentences), but use judgment based on the complexity of the question: {prompt}"
 
 
 async def send_response(response: str, update: Update, msg: EditMessage):

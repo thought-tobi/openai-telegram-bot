@@ -3,8 +3,6 @@ from unittest.mock import MagicMock
 
 import openai
 
-from src.client.image import create_image
-
 MOCK_RESPONSE = {
     "created": 1681456145,
     "data": [

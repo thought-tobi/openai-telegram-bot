@@ -33,32 +33,6 @@ class TestSession(TestCase):
         session.add_message(Message(role=USER, content="hello"))
         assert len(get_user_session(user_id).messages) == 2
 
-    def test_should_expire_tts(self):
-        user_id = 123
-        session = create_new_session(user_id)
-        assert session.tts.is_active() is False
-
-        session.activate_tts(2)
-        assert get_user_session(user_id).tts.is_active() is True
-
-        # expires
-        time.sleep(3)
-        assert get_user_session(user_id).is_tts_active() is False
-
-    def test_should_reset_voice_when_session_resets(self):
-        user_id = 123
-        session = create_new_session(user_id)
-        session.tts.activate(2)
-        session.set_voice("jordan peterson")
-
-        # get session
-        assert get_user_session(user_id).tts.voice == "jordan peterson"
-
-        # session expires
-        time.sleep(2)
-        assert get_user_session(user_id).is_tts_active() is False
-        assert get_user_session(user_id).tts.voice == tts.DEFAULT
-
     def test_should_correctly_count_total_tokens(self):
         user_id = 123
         session = create_new_session(user_id)
@@ -106,18 +80,3 @@ class TestSession(TestCase):
         # verify system prompt is still there
         assert len(session.messages) == 1
         assert session.messages[0].role == SYSTEM
-
-    def test_should_add_modifiers_to_message(self):
-        user_id = 123
-        session = create_new_session(user_id)
-        session.activate_tts(2)
-        session.set_voice("jordan peterson")
-
-        session.add_message(Message(role=USER, content="What is love?"))
-
-        assert "Respond to the following prompt in the style of jordan peterson" in session.messages[1].content
-        assert "Be concise" in session.messages[1].content
-
-        response = Message(role=ASSISTANT, content="Answer in the style of Jordan Peterson: Baby don't hurt me")
-        session.add_message(response)
-        assert "Answer in the style of " not in session.messages[2].content

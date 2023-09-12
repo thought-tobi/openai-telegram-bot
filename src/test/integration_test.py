@@ -75,26 +75,3 @@ class IgnoreTest():
 
         # openai called
         openai.Completion.create.assert_called_once()
-
-    async def test_should_use_tts(self):
-        # given
-        openai.Completion.create = MagicMock(MOCK_GPT35_RESPONSE)
-
-        update = Update(123, message=Optional["hello"])
-        session = get_user_session(123)
-        session.activate_tts(5)
-        session.set_voice("Donald Trump")
-
-        # when
-        await handle_text_message(update, None)
-
-        # then
-        # session created and message added
-        self.assertIn("Respond in the style of", get_user_session(123).messages[1].content)
-
-        # openai called
-        openai.Completion.create.assert_called_once()
-
-        logging.info(session)
-        # verify response
-        self.assertIn("This is the greatest Hello World ever!", session.messages[2].content)

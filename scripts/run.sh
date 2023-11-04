@@ -31,5 +31,6 @@ export PYTHONPATH=$PYTHONPATH:$ROOT_DIR
 # activate virtual environment
 source venv/bin/activate
 echo "venv activated"
+pip install -r requirements.txt
 python src/app.py &
 echo "app started, pid $!"

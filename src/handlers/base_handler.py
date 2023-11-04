@@ -2,6 +2,7 @@ import logging
 import os
 
 from telegram import Update
+import src.client.lingolift as lingolift
 
 from src.client.chat import chat_completion
 from src.handlers.edit_message import EditMessage
@@ -9,9 +10,9 @@ from src.session.message import Message, USER
 from src.session.session import get_user_session, Session
 
 
-async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None:
-    if msg is None:
-        msg = EditMessage(await update.message.reply_text("Thinking ..."))
+async def handle_prompt(update: Update) -> None:
+    msg = EditMessage(await update.message.reply_text("Thinking ..."))
+    prompt = update.message.text
 
     # retrieve user session and append prompt
     session = get_user_session(update.effective_user.id)
@@ -25,3 +26,12 @@ async def handle_prompt(update: Update, prompt, msg: EditMessage = None) -> None
     logging.info(f"Response: {response}")
     await msg.message.edit_text(msg.replace(response.content))
 
+
+async def handle_translation(update: Update) -> None:
+    msg = EditMessage(await update.message.reply_text("Thinking ..."))
+    prompt = update.message.text
+
+    response = await lingolift.get_all(prompt)
+
+    logging.info(f"Response: {response}")
+    await msg.message.edit_text(msg.replace(str(response)))
